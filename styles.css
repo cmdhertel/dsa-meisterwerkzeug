@@ -253,14 +253,14 @@
 .dsa-psa-banner.is-down .dsa-psa-name { text-decoration: line-through; text-decoration-thickness: 0.09em; }
 .dsa-psa-banner.is-hidden .dsa-psa-name { letter-spacing: 0.4em; }
 .dsa-psa-seal { position: absolute; left: -0.45em; top: 50%; width: 2.7em; height: 2.7em; transform: translateY(-50%); filter: drop-shadow(0 0 0.35em rgba(255, 120, 30, 0.9)); animation: dsa-psa-glow 2.8s ease-in-out infinite; }
-.seal-wax { fill: var(--psa-red); stroke: var(--psa-red-deep); stroke-width: 1; }
-.seal-ring { fill: none; stroke: #b9402f; stroke-width: 1.2; }
-.seal-star { fill: var(--psa-gold-light); }
+.dsa-seal-wax { fill: var(--psa-red); stroke: var(--psa-red-deep); stroke-width: 1; }
+.dsa-seal-ring { fill: none; stroke: #b9402f; stroke-width: 1.2; }
+.dsa-seal-star { fill: var(--psa-gold-light); }
 .dsa-psa-head { display: flex; align-items: center; gap: 0.5em; min-width: 0; }
 .dsa-psa-crest { width: 1.15em; height: 1.4em; flex: none; }
-.dsa-psa-crest .crest-body { fill: var(--psa-hero); stroke: var(--psa-gold); stroke-width: 2.4; }
-.dsa-psa-crest .crest-line { fill: none; stroke: var(--psa-gold-light); stroke-width: 3; stroke-linecap: round; }
-.is-foe .dsa-psa-crest .crest-body { fill: var(--psa-foe); }
+.dsa-psa-crest .dsa-crest-body { fill: var(--psa-hero); stroke: var(--psa-gold); stroke-width: 2.4; }
+.dsa-psa-crest .dsa-crest-line { fill: none; stroke: var(--psa-gold-light); stroke-width: 3; stroke-linecap: round; }
+.is-foe .dsa-psa-crest .dsa-crest-body { fill: var(--psa-foe); }
 .dsa-psa-crest-blank { display: inline-block; text-align: center; font-family: var(--psa-display); color: var(--psa-ink-soft); }
 .dsa-psa-name { font-weight: 700; font-size: 1.25em; overflow-wrap: anywhere; }
 .dsa-psa-spacer { flex: 1; }
@@ -341,8 +341,8 @@
 .dsa-enc-field { display: flex; flex-direction: column; font-size: 0.75em; color: var(--text-muted); }
 .dsa-enc-field input { width: 64px; }
 .dsa-enc-field-wide input { width: 170px; }
-.dsa-enc-required { border-color: var(--text-error) !important; }
-.dsa-enc-invalid { border-color: var(--text-error) !important; background: var(--background-modifier-error); }
+.dsa-enc input.dsa-enc-required { border-color: var(--text-error); }
+.dsa-enc input.dsa-enc-invalid, .dsa-enc input.dsa-enc-invalid:focus { border-color: var(--text-error); background: var(--background-modifier-error); }
 .dsa-enc-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 4px 0; }
 .dsa-enc-herolist { display: flex; gap: 12px; flex-wrap: wrap; margin: 4px 0; }
 /* === /encounter === */
@@ -468,7 +468,8 @@
 /* === /trefferzonen === */
 
 /* === regie === */
-.dsa-regie-view { padding: 0 !important; overflow: hidden; }
+.dsa-regie-view { overflow: hidden; }
+.workspace-leaf-content .view-content.dsa-regie-view { padding: 0; }
 .dsa-regie-root {
   /* spacing scale + shared metrics */
   --regie-sp-1: 4px; --regie-sp-2: 8px; --regie-sp-3: 12px; --regie-sp-4: 16px; --regie-sp-6: 24px;

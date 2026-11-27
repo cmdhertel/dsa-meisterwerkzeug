@@ -44,19 +44,19 @@ const flourish = (corner: string): VNode =>
 const shield = (hero: boolean): VNode =>
   hero
     ? svg("svg", { class: "dsa-psa-crest", viewBox: "0 0 40 48", "aria-hidden": "true" }, [
-        svg("path", { d: "M20 2 L37 8 V24 Q37 38 20 46 Q3 38 3 24 V8 Z", class: "crest-body" }),
-        svg("path", { d: "M20 8 V40 M8 20 H32", class: "crest-line" }),
+        svg("path", { d: "M20 2 L37 8 V24 Q37 38 20 46 Q3 38 3 24 V8 Z", class: "dsa-crest-body" }),
+        svg("path", { d: "M20 8 V40 M8 20 H32", class: "dsa-crest-line" }),
       ])
     : svg("svg", { class: "dsa-psa-crest", viewBox: "0 0 40 48", "aria-hidden": "true" }, [
-        svg("path", { d: "M2 6 L10 10 L20 2 L30 10 L38 6 L35 26 L20 46 L5 26 Z", class: "crest-body" }),
-        svg("path", { d: "M12 14 L28 34 M28 14 L12 34", class: "crest-line" }),
+        svg("path", { d: "M2 6 L10 10 L20 2 L30 10 L38 6 L35 26 L20 46 L5 26 Z", class: "dsa-crest-body" }),
+        svg("path", { d: "M12 14 L28 34 M28 14 L12 34", class: "dsa-crest-line" }),
       ]);
 
 const seal = (): VNode =>
   svg("svg", { class: "dsa-psa-seal", viewBox: "0 0 40 40", "aria-hidden": "true" }, [
-    svg("path", { d: "M20 2 q5 0 8 4 q6 0 8 6 q4 4 2 9 q3 5 -1 10 q-1 6 -7 7 q-3 5 -9 4 q-6 1 -9 -4 q-6 -1 -7 -7 q-4 -5 -1 -10 q-2 -5 2 -9 q2 -6 8 -6 q3 -4 8 -4z", class: "seal-wax" }),
-    svg("circle", { cx: "20", cy: "20", r: "11", class: "seal-ring" }),
-    svg("path", { d: "M20 11 L22.6 17.4 L29 17.8 L24 22 L25.7 28.4 L20 24.9 L14.3 28.4 L16 22 L11 17.8 L17.4 17.4 Z", class: "seal-star" }),
+    svg("path", { d: "M20 2 q5 0 8 4 q6 0 8 6 q4 4 2 9 q3 5 -1 10 q-1 6 -7 7 q-3 5 -9 4 q-6 1 -9 -4 q-6 -1 -7 -7 q-4 -5 -1 -10 q-2 -5 2 -9 q2 -6 8 -6 q3 -4 8 -4z", class: "dsa-seal-wax" }),
+    svg("circle", { cx: "20", cy: "20", r: "11", class: "dsa-seal-ring" }),
+    svg("path", { d: "M20 11 L22.6 17.4 L29 17.8 L24 22 L25.7 28.4 L20 24.9 L14.3 28.4 L16 22 L11 17.8 L17.4 17.4 Z", class: "dsa-seal-star" }),
   ]);
 
 const ornament = (): VNode => t("div", "dsa-psa-orn", "❦ ✦ ❦");
