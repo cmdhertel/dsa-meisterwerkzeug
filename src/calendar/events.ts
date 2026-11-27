@@ -1,4 +1,5 @@
 // Pure: turn note frontmatter into calendar events.
+import { linkTarget } from "../probe/logic";
 import { AvDate, parseDate, toDayNumber } from "./engine";
 
 export interface CalEvent {
@@ -13,11 +14,9 @@ export interface CalEvent {
 const DATE_KEYS = ["datum_bf", "datum_aventurisch", "aventurisches_datum"];
 const EVENT_TYPES = new Set(["ereignis", "session", "szene", "kapitel", "abenteuer"]);
 
-/** "[[Die Nebelfurt]]" / "[[a|b]]" -> "Die Nebelfurt" */
-export function linkTarget(v: unknown): string | null {
-  if (typeof v !== "string") return null;
-  const m = /\[\[([^\]|#]+)/.exec(v);
-  return (m ? m[1] : v).trim() || null;
+/** `typ` value that marks a campaign note (case-insensitive). */
+export function isKampagneTyp(typ: unknown): boolean {
+  return typeof typ === "string" && typ.trim().toLowerCase() === "kampagne";
 }
 
 export function eventFromFrontmatter(path: string, title: string, fm: Record<string, unknown> | undefined | null): CalEvent | null {
