@@ -27,7 +27,11 @@ Alle Befehle findest du in der Befehlspalette (`Strg/Cmd + P`) unter Namen mit B
 
 ## Installation
 
-### Manuell (aktuell)
+### Über die Community-Plugins
+
+Sobald das Plugin im Obsidian-Verzeichnis freigeschaltet ist: *Einstellungen → Community-Plugins → Durchsuchen*, nach „DSA Meisterwerkzeug“ suchen, installieren und aktivieren.
+
+### Manuell
 
 1. Lade `main.js`, `manifest.json` und `styles.css` aus dem [neuesten Release](https://github.com/cmdhertel/dsa-meisterwerkzeug/releases/latest) herunter.
 2. Lege sie in `<Vault>/.obsidian/plugins/dsa-meisterwerkzeug/` ab.

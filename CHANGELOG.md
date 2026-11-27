@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 (2026-11-27)
+
+- Plugin-Beschreibung an die Vorgaben des Obsidian-Plugin-Verzeichnisses angepasst (Aktionssatz, Punkt am Ende).
+- README: Installation über die Community-Plugins ergänzt.
+
 ## 1.0.0 (2026-11-27)
 
 Erste öffentliche Version. Änderungen gegenüber der internen Vorabversion 0.1.0:
