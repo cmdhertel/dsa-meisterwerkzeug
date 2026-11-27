@@ -1,14 +1,29 @@
-// Generates src/data/talents.generated.ts from the vault rule note + supplement file.
-// Usage: npm run gen:talents
+// Generates src/data/talents.generated.ts from a talent rule note + scripts/talent-supplement.json.
+// Usage: npm run gen:talents -- <path/to/Talentfertigkeiten.md>
+//    or: DSA_TALENT_NOTE=<path/to/Talentfertigkeiten.md> npm run gen:talents
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
-// Vault root: DSA_VAULT env var, or two levels above the plugin folder (<vault>/.obsidian/plugins/<id>... adjust as needed).
-const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(root, "../..");
-const note = fs.readFileSync(path.join(vault, "20 - Regeln/Talentfertigkeiten.md"), "utf8");
+const usage = `Usage: npm run gen:talents -- <path/to/Talentfertigkeiten.md>
+   or: DSA_TALENT_NOTE=<path/to/Talentfertigkeiten.md> npm run gen:talents
+
+The note must be a Markdown file with one "# <Gruppe>" heading per talent group
+(Körpertalente, Gesellschaftstalente, Naturtalente, Wissenstalente) and table rows
+whose second column holds the attributes, e.g. "MU/KL/IN".`;
+const notePath = process.argv[2] ?? process.env.DSA_TALENT_NOTE;
+if (!notePath) {
+  console.error(usage);
+  process.exit(1);
+}
+const resolvedNote = path.resolve(notePath);
+if (!fs.existsSync(resolvedNote) || !fs.statSync(resolvedNote).isFile()) {
+  console.error(`Talent note not found or not a file: ${resolvedNote}\n\n${usage}`);
+  process.exit(1);
+}
+const note = fs.readFileSync(resolvedNote, "utf8");
 const supplement = JSON.parse(fs.readFileSync(path.join(here, "talent-supplement.json"), "utf8"));
 
 const groupNames = { Körpertalente: "Körper", Gesellschaftstalente: "Gesellschaft", Naturtalente: "Natur", Wissenstalente: "Wissen" };

@@ -18,7 +18,7 @@ Requires Node 20+. `npm run dev` watches and rebuilds; set `OBSIDIAN_PLUGIN_DIR`
 - `src/engine/` – pure rules engine (dice, combat, effects, hit zones); no Obsidian imports, covered by unit tests.
 - `src/<feature>/` – one folder per feature (`cockpit`, `probe`, `magic`, `calendar`, `regie`, `encounter`, `groupprobe`, `share`, `hero`, `bestiary`), registered from `src/main.ts`.
 - `tests/` – Vitest. Tests named `*.real.test.ts` (and a few others) run against a real vault if present and are skipped otherwise, so CI stays green without private data. Point them at a vault with `DSA_VAULT=<path> npm test`.
-- `scripts/gen-talents.mjs` – regenerates `src/data/talents.generated.ts` from a vault rule note (`DSA_VAULT=<path>`); the generated file is committed.
+- `scripts/gen-talents.mjs` – regenerates `src/data/talents.generated.ts` from a talent rule note passed as argument (`npm run gen:talents -- <path/to/Talentfertigkeiten.md>`, or env `DSA_TALENT_NOTE`); the generated file is committed.
 
 ## Guidelines
 

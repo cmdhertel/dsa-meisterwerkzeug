@@ -1,5 +1,5 @@
 {
-  "_comment": "Talents that are NOT in 20 - Regeln/Talentfertigkeiten.md (the vault note lists only 4 groups and only 4 Wissenstalente). Taken from the DSA5 core rulebook, NOT verified against the vault.",
+  "_comment": "Talents that are NOT in the talent rule note (it lists only 4 groups and only 4 Wissenstalente). Taken from the DSA5 core rulebook, NOT verified against the rule note.",
   "Wissen": [
     { "name": "Kriegskunst", "attrs": ["MU", "KL", "IN"] },
     { "name": "Magiekunde", "attrs": ["KL", "KL", "IN"] },
