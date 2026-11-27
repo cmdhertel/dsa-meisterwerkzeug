@@ -1,5 +1,26 @@
 // Inline code: `zauber: Ignifaxius +2 @Thorwin` / `liturgie: Blendstrahl -1`
+import type { AttrKey } from "../engine/types";
 import type { SpellKind } from "./spells";
+
+/** Attributes remembered for a spell without rule note (zauber-eigenschaften.json). */
+export interface RememberedSpell {
+  probe: [AttrKey, AttrKey, AttrKey];
+  kosten?: number | null;
+}
+
+/**
+ * Content of zauber-eigenschaften.json. Blank text -> empty memory. Anything that is not a JSON object -> null,
+ * meaning: the file is broken and must never be overwritten.
+ */
+export function parseMemoryFile(text: string): Record<string, RememberedSpell> | null {
+  if (!text.trim()) return {};
+  try {
+    const v: unknown = JSON.parse(text);
+    return v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, RememberedSpell>) : null;
+  } catch {
+    return null;
+  }
+}
 
 export interface MagicSpec {
   kind: SpellKind;
@@ -24,7 +45,7 @@ export function parseMagic(raw: string): { ok: true; spec: MagicSpec } | { ok: f
     rest = rest.slice(0, h.index).trim();
   }
   let modifier = 0;
-  const mod = /\s*([+\-−])\s*(\d+)\s*$/.exec(rest);
+  const mod = /\s*([+\-−–])\s*(\d+)\s*$/.exec(rest);
   if (mod) {
     modifier = (mod[1] === "+" ? 1 : -1) * Number(mod[2]);
     rest = rest.slice(0, mod.index).trim();

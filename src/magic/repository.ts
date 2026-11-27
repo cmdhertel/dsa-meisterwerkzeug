@@ -1,4 +1,5 @@
 // Obsidian side: rule notes -> SpellDef[], casters from heroes/bestiary, energy write-back, remembered attributes.
+import { Notice } from "obsidian";
 import type { App, TFile } from "obsidian";
 import type { AttrKey } from "../engine/types";
 import { ATTR_KEYS } from "../engine/types";
@@ -6,19 +7,19 @@ import type DsaMeisterwerkzeugPlugin from "../main";
 import { folderPath } from "../settingsData";
 import { readText, writeText } from "../util";
 import { Caster, KEY_ASP_CURRENT, KEY_KAP_CURRENT, casterFromCreature, casterFromHero, energyNumber } from "./casters";
+import { RememberedSpell, parseMemoryFile } from "./parse";
 import { SpellDef, SpellKind, findSpell, normalizeSpellName, parseSpellNote } from "./spells";
 
-const MEMORY_FILE = "zauber-eigenschaften.json";
+export type { RememberedSpell } from "./parse";
 
-export interface RememberedSpell {
-  probe: [AttrKey, AttrKey, AttrKey];
-  kosten?: number | null;
-}
+const MEMORY_FILE = "zauber-eigenschaften.json";
 
 export class SpellRepository {
   private spells: SpellDef[] = [];
   private stamp = "";
+  /** cached content of the memory file; null = not loaded or broken (then it is re-read next time and never written) */
   private memory: Record<string, RememberedSpell> | null = null;
+  private brokenNoticeShown = false;
 
   constructor(private plugin: DsaMeisterwerkzeugPlugin) {}
   private get app(): App {
@@ -103,29 +104,39 @@ export class SpellRepository {
   private memoryPath(): string {
     return `${this.plugin.settings.heroDataFolder.replace(/\/+$/, "")}/${MEMORY_FILE}`;
   }
-  async remembered(name: string): Promise<RememberedSpell | null> {
-    if (!this.memory) {
-      let t: string | null;
-      try {
-        t = await readText(this.app, this.memoryPath());
-      } catch {
-        return null; // unreadable: not cached, and remember() must not overwrite the file
-      }
-      try {
-        this.memory = t ? (JSON.parse(t) as Record<string, RememberedSpell>) : {};
-      } catch {
-        this.memory = {};
-      }
+  /**
+   * Memory file content. Missing file = empty memory. Unreadable or invalid file = null: it is then never written,
+   * and the user is told once (German Notice) so that the remembered spells are not silently lost.
+   */
+  private async loadMemory(): Promise<Record<string, RememberedSpell> | null> {
+    if (this.memory) return this.memory;
+    const path = this.memoryPath();
+    let parsed: Record<string, RememberedSpell> | null;
+    try {
+      const text = await readText(this.app, path);
+      parsed = text === null ? {} : parseMemoryFile(text);
+    } catch {
+      parsed = null;
     }
-    const r = this.memory[normalizeSpellName(name)];
+    if (parsed) return (this.memory = parsed);
+    if (!this.brokenNoticeShown) {
+      this.brokenNoticeShown = true;
+      new Notice(`${MEMORY_FILE} ist beschädigt oder nicht lesbar. Die Datei wird nicht überschrieben – bitte im Heldenordner korrigieren oder löschen.`);
+    }
+    return null;
+  }
+  async remembered(name: string): Promise<RememberedSpell | null> {
+    const memory = await this.loadMemory();
+    if (!memory) return null;
+    const r = memory[normalizeSpellName(name)];
     return r && Array.isArray(r.probe) && r.probe.length === 3 && r.probe.every((k) => ATTR_KEYS.includes(k)) ? r : null;
   }
   async remember(name: string, value: RememberedSpell): Promise<void> {
-    await this.remembered(name);
-    if (!this.memory) return; // memory file unreadable: do not overwrite it
-    this.memory[normalizeSpellName(name)] = value;
+    const memory = await this.loadMemory();
+    if (!memory) return;
+    memory[normalizeSpellName(name)] = value;
     try {
-      await writeText(this.app, this.memoryPath(), JSON.stringify(this.memory, null, 2));
+      await writeText(this.app, this.memoryPath(), JSON.stringify(memory, null, 2));
     } catch {
       /* not critical */
     }

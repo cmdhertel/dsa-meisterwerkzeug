@@ -9,6 +9,8 @@ export interface SpellDef {
   name: string;
   kind: SpellKind;
   probe: [AttrKey, AttrKey, AttrKey];
+  /** the Probe line could not be read: `probe` is the default MU/KL/IN and must be checked by hand */
+  probeFallback: boolean;
   /** raw cost line, e.g. "4 AsP + 2 AsP je 5 Min" */
   kostenText: string;
   /** first fixed number of the cost line (activation cost); null when not parseable (e.g. "4 / 8 / 16") */
@@ -87,6 +89,7 @@ export function parseSpellNote(text: string, sourcePath: string, fallbackName: s
     name: h1 || fallbackName,
     kind,
     probe: attrs ?? ["MU", "KL", "IN"],
+    probeFallback: attrs === null,
     kostenText,
     kostenBasis: parseCostBasis(kostenText),
     nichtModifizierbar: /nicht modifizierbar/i.test(kostenText),

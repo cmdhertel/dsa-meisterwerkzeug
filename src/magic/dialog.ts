@@ -116,14 +116,16 @@ export class CastModal extends Modal {
         this.costBasis = mem.kosten ?? null;
       }
     }
+    // FW of the spell for this caster; 0 when the caster does not know it (no stale FW from the previous spell)
     const known = this.caster && this.spellName ? findKnown(this.caster, this.spellName) : null;
-    if (known) this.fw = known.fw;
+    this.fw = known?.fw ?? 0;
     this.syncAttrValues();
   }
 
+  /** Attribute values from the caster; an attribute the caster does not have keeps the value at the same index (or 10). */
   private syncAttrValues() {
     const c = this.caster;
-    this.attrVals = this.attrKeys.map((k) => c?.attrs[k] ?? this.attrVals[0] ?? 10) as [number, number, number];
+    this.attrVals = this.attrKeys.map((k, i) => c?.attrs[k] ?? this.attrVals[i] ?? 10) as [number, number, number];
   }
 
   private energyAvailable(): number | null {
@@ -164,7 +166,7 @@ export class CastModal extends Modal {
 
     new Setting(el)
       .setName(this.kind === "zauber" ? "Zauber" : "Liturgie")
-      .setDesc(this.spell ? `${this.spell.merkmal || "–"} · Probe ${this.spell.probe.join("/")}${this.spell.modifizierbar ? ` (mod. ${this.spell.modifizierbar})` : ""}` : this.spellName ? "Keine Regelnotiz gefunden – Eigenschaften unten angeben." : "")
+      .setDesc(this.spell ? `${this.spell.merkmal || "–"} · Probe ${this.spell.probe.join("/")}${this.spell.modifizierbar ? ` (mod. ${this.spell.modifizierbar})` : ""}${this.spell.probeFallback ? " · Hinweis: Probe-Zeile nicht lesbar, Standard MU/KL/IN – bitte in der Regelnotiz prüfen." : ""}` : this.spellName ? "Keine Regelnotiz gefunden – Eigenschaften unten angeben." : "")
       .addText((t) => {
         t.setPlaceholder("Name").setValue(this.spellName);
         const names = () => {
