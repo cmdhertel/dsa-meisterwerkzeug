@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fixedRoller } from "../src/engine/dice";
 import {
   addDays, diffDays, formatDate, fromDayNumber, holyDay, isValidDate, moonPhase, parseDate, seasonOf, toDayNumber, weekdayName, WEEKDAYS,
 } from "../src/calendar/engine";
 import { eventFromFrontmatter, indexByDay } from "../src/calendar/events";
-import { applyRegen, rollRest, withManualValue } from "../src/calendar/rest";
+import { applyRegen, rerollHero, rollRest, withManualValue } from "../src/calendar/rest";
 import { describeWeather, rollWeather } from "../src/calendar/weather";
-import { normalizeData } from "../src/calendar/state";
+import { CalendarState, normalizeData, parseStored } from "../src/calendar/state";
+import type { App } from "obsidian";
+import { isKampagneTyp } from "../src/calendar/events";
 
 describe("calendar engine", () => {
   it("parses and formats", () => {
@@ -104,5 +106,92 @@ describe("state", () => {
     const d = normalizeData({ active: "X", campaigns: { X: { date: { year: 1, month: 99, day: 1 }, zone: "nope" } } });
     expect(d.campaigns.X).toEqual({});
     expect(normalizeData(null).active).toBe("*");
+  });
+});
+
+describe("corrupt calendar.json (#4)", () => {
+  const fakeApp = (files: Record<string, string>) => {
+    const store = { ...files };
+    const write = vi.fn(async (path: string, text: string) => {
+      store[path] = text;
+    });
+    const adapter = {
+      exists: async (p: string) => p in store,
+      read: async (p: string) => store[p],
+      write,
+    };
+    return { app: { vault: { adapter } } as unknown as App, store, write };
+  };
+  const PATH = "plugins/x/calendar.json";
+
+  it("parseStored distinguishes missing, valid and corrupt content", () => {
+    expect(parseStored(null)).toEqual({ data: normalizeData(null), failed: false });
+    expect(parseStored('{"active":"X","campaigns":{},"weather":{}}').data.active).toBe("X");
+    expect(parseStored("{\"active\": \"X\"").failed).toBe(true);
+  });
+
+  it("does not overwrite a corrupt file: keeps a .bak, reports, and flush refuses to write", async () => {
+    const broken = '{"active": "Flu';
+    const { app, store, write } = fakeApp({ [PATH]: broken });
+    const onLoadFailed = vi.fn();
+    const st = new CalendarState(app, PATH, { onLoadFailed });
+    await st.load();
+    expect(st.loadFailed).toBe(true);
+    expect(onLoadFailed).toHaveBeenCalledTimes(1);
+    expect(store[`${PATH}.bak`]).toBe(broken);
+    st.setActive("Nebelfurt");
+    await st.flush();
+    expect(write).not.toHaveBeenCalledWith(PATH, expect.anything());
+    expect(store[PATH]).toBe(broken);
+  });
+
+  it("writes only after a real change", async () => {
+    const { app, write } = fakeApp({});
+    const st = new CalendarState(app, PATH);
+    await st.load();
+    await st.flush();
+    expect(write).not.toHaveBeenCalled();
+    st.setActive("Nebelfurt");
+    await st.flush();
+    expect(write).toHaveBeenCalledTimes(1);
+    await st.flush();
+    expect(write).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("rest: re-roll one hero (#18)", () => {
+  const hero = (id: string, mod = 0) => ({
+    id,
+    name: id,
+    mod,
+    lep: { current: 5, max: 20 },
+    asp: { current: 0, max: 0 },
+    kap: { current: 0, max: 0 },
+  });
+  it("re-rolls only the changed hero and keeps other manual corrections", () => {
+    const heroes = [hero("a"), hero("b", 1), hero("c")];
+    let n = 0;
+    const roller = () => (n++ % 6) + 1;
+    const first = rollRest(heroes, 0, roller);
+    const edited = { ...first[0], lep: { ...first[0].lep, after: 12 } };
+    const results = [edited, first[1], first[2]];
+    const next = rerollHero(heroes, results, 1, 0, () => 6);
+    expect(next[0]).toBe(edited);
+    expect(next[2]).toBe(first[2]);
+    expect(next[1]).not.toBe(first[1]);
+    expect(next[1].lep.roll).toBe(6);
+    expect(next[1].lep.mod).toBe(1);
+  });
+});
+
+describe("kampagne links and typ (#41, #30)", () => {
+  it("campaign links are reduced to the note name, like in the probe", () => {
+    const e = eventFromFrontmatter("a.md", "A", { typ: "ereignis", datum_bf: "5. Rondra 1028 BF", kampagne: "[[Kampagnen/Die Nebelfurt.md|x]]" });
+    expect(e?.campaign).toBe("Die Nebelfurt");
+  });
+  it("typ kampagne is case and whitespace tolerant", () => {
+    expect(isKampagneTyp(" Kampagne ")).toBe(true);
+    expect(isKampagneTyp("kampagne")).toBe(true);
+    expect(isKampagneTyp(undefined)).toBe(false);
   });
 });
