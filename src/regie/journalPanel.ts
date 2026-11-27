@@ -10,6 +10,8 @@ const PAGE = 120;
 
 export interface JournalApi {
   render(): void;
+  /** True while an entry is open in the editor; re-renders would discard the unsaved text. */
+  isEditing(): boolean;
   focusCapture(): void;
 }
 
@@ -103,5 +105,5 @@ export function buildJournalPanel(host: HTMLElement, ctx: RegieCtx): JournalApi 
     if (run.startedAt !== null) bits.push(formatDuration(sessionElapsed(run, Date.now())) + " h");
     stats.setText(bits.join(" · "));
   };
-  return { render, focusCapture: () => capture.focus() };
+  return { render, isEditing: () => editing !== null, focusCapture: () => capture.focus() };
 }

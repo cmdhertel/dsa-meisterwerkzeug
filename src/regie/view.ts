@@ -188,7 +188,8 @@ export class RegieView extends ItemView implements RegieCtx {
         this.header.refresh();
         this.rail.render();
         this.stage.renderHead();
-        this.journal.render();
+        // An open entry editor must not be re-rendered by background changes (auto-log, probes): the draft would be lost.
+        if (!this.journal.isEditing()) this.journal.render();
       }),
     );
     let n = 0;
