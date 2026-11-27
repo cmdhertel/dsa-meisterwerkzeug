@@ -3,7 +3,8 @@
   "name": "DSA Meisterwerkzeug",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
-  "description": "Spielleiter-Werkzeuge fuer Das Schwarze Auge 5: Regelwerk-Engine, Bestiarium-Adapter, Heldenimport.",
+  "description": "Game master toolkit for Das Schwarze Auge 5: rules engine, combat cockpit, spells, calendar, session director, hero import.",
   "author": "Vademecum des Meisters",
-  "isDesktopOnly": false
+  "isDesktopOnly": false,
+  "authorUrl": "https://github.com/cmdhertel"
 }

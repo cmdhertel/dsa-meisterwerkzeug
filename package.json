@@ -1,14 +1,16 @@
 {
   "name": "dsa-meisterwerkzeug",
   "version": "0.1.0",
-  "description": "DSA5 Meisterwerkzeug (Obsidian plugin)",
+  "description": "Game master toolkit for Das Schwarze Auge 5 (DSA5) in Obsidian",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "test": "vitest run",
     "gen:talents": "node scripts/gen-talents.mjs",
-    "report:bestiary": "vitest run tests/bestiary.real.test.ts --reporter=verbose"
+    "report:bestiary": "vitest run tests/bestiary.real.test.ts --reporter=verbose",
+    "typecheck": "tsc -noEmit -skipLibCheck",
+    "version": "node scripts/version-bump.mjs && git add manifest.json versions.json"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
@@ -20,5 +22,23 @@
     "vitest": "^5.1.0",
     "yaml": "^2.9.1"
   },
-  "private": true
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmdhertel/dsa-meisterwerkzeug.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cmdhertel/dsa-meisterwerkzeug/issues"
+  },
+  "homepage": "https://github.com/cmdhertel/dsa-meisterwerkzeug#readme",
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "dsa",
+    "dsa5",
+    "das-schwarze-auge",
+    "ttrpg",
+    "game-master"
+  ]
 }

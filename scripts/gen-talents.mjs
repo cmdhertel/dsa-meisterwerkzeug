@@ -6,7 +6,8 @@ import { fileURLToPath } from "url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
-const vault = path.resolve(root, "../..");
+// Vault root: DSA_VAULT env var, or two levels above the plugin folder (<vault>/.obsidian/plugins/<id>... adjust as needed).
+const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(root, "../..");
 const note = fs.readFileSync(path.join(vault, "20 - Regeln/Talentfertigkeiten.md"), "utf8");
 const supplement = JSON.parse(fs.readFileSync(path.join(here, "talent-supplement.json"), "utf8"));
 
