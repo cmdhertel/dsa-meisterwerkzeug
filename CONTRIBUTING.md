@@ -32,4 +32,4 @@ Requires Node 20+. `npm run dev` watches and rebuilds; set `OBSIDIAN_PLUGIN_DIR`
 1. `npm version <patch|minor|major>` – bumps `package.json`, `manifest.json` and `versions.json`.
 2. `git push --follow-tags` – the Release workflow builds and attaches `main.js`, `manifest.json`, `styles.css`.
 
-(Tag names must equal the manifest version with no `v` prefix; use `npm config set tag-version-prefix ""` if needed.)
+(Tags have no `v` prefix: the repository `.npmrc` sets `tag-version-prefix=""` so `npm version` creates `1.2.3`, which the Release workflow matches.)
