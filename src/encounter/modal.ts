@@ -157,13 +157,20 @@ export class EncounterBuilderModal extends Modal {
       return true;
     });
     for (const c of hits.slice(0, MAX_HITS)) {
-      const row = el.createDiv({ cls: "dsa-enc-hit" });
+      // keyboard-reachable like a button: Tab to focus, Enter or Space to add
+      const row = el.createDiv({ cls: "dsa-enc-hit", attr: { role: "button", tabindex: "0" } });
       row.createDiv({ text: c.name });
       const cb = c.combatant;
       const lep = cb.needsManual.includes("lep") ? "variabel" : (cb.lepMax ?? "?");
       const ini = cb.needsManual.includes("ini") ? "variabel" : (cb.iniBase ?? "?");
       row.createEl("small", { text: `LeP ${lep} · INI ${ini} · RS ${cb.rs ?? "?"}` + (c.anzahl ? ` · Anzahl ${c.anzahl}` : ""), cls: "dsa-mw-muted" });
-      row.addEventListener("click", () => this.addCreature(c));
+      const pick = () => this.addCreature(c);
+      row.addEventListener("click", pick);
+      row.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Enter" && ev.key !== " ") return;
+        ev.preventDefault();
+        pick();
+      });
     }
     if (!hits.length) el.createDiv({ text: "Keine Treffer.", cls: "dsa-mw-muted" });
     else if (hits.length > MAX_HITS) el.createDiv({ text: `… ${hits.length - MAX_HITS} weitere, Suche eingrenzen.`, cls: "dsa-mw-muted" });
