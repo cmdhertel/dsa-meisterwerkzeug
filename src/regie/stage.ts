@@ -2,7 +2,7 @@
 import { Component, setIcon } from "obsidian";
 import { runAction, runBlock } from "./actions";
 import type { RegieCtx } from "./ctx";
-import { digestNote, sectionBody } from "./digest";
+import { digestNote, secretTasks, sectionBody } from "./digest";
 import type { NoteDigest } from "./digest";
 import { renderInline, renderMd, renderPersons, renderPlaces } from "./persons";
 import { ACTION_ICON, actionLabel, meaningfulBody, stripFrontmatterAndH1, unquote } from "./text";
@@ -182,10 +182,12 @@ export function buildStage(host: HTMLElement, ctx: RegieCtx): StageApi {
   }
 
   async function clues(el: HTMLElement, d: NoteDigest, path: string, c: Component): Promise<void> {
-    if (!d.tasks.length) return;
+    // only tasks under a Geheimnis/Hinweis heading are clues (docs/VAULT.md)
+    const tasks = secretTasks(d);
+    if (!tasks.length) return;
     const s = section(el, "Hinweise");
     const list = s.createEl("ul", { cls: "dsa-regie-tasks" });
-    for (const t of d.tasks) {
+    for (const t of tasks) {
       const li = list.createEl("li", { cls: "dsa-regie-task" });
       const label = li.createEl("label");
       const cb = label.createEl("input", { attr: { type: "checkbox" } });
