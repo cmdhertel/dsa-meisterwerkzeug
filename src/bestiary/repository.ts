@@ -3,6 +3,7 @@ import type { Plugin } from "obsidian";
 import type { Combatant } from "../model";
 import { BestiaryParseResult, parseCreature } from "./adapter";
 import { NPC_TYPES, extractStatblockYaml, hasCombatStats, normalizeStatblock } from "./statblock";
+import { isInFolder, parseTemplatesFolder } from "./templates";
 
 /**
  * Reads creature notes from the bestiary folder through Obsidian's metadata cache,
@@ -13,6 +14,11 @@ export class BestiaryRepository {
   private npcs = new Map<string, Record<string, unknown>>();
   /** bumped on every change that can alter `files()` or `frontmatter()` */
   private revision = 0;
+  /**
+   * Folder of the core Templates plugin; its notes are never NPCs. Null if the plugin has no folder
+   * configured (or its settings file is unreadable), so no folder is excluded then.
+   */
+  private templateFolder: string | null = null;
 
   constructor(private app: App, private getFolder: () => string) {}
 
@@ -59,11 +65,26 @@ export class BestiaryRepository {
         if (v && f instanceof TFile) this.npcs.set(f.path, v);
       }),
     );
-    this.app.workspace.onLayoutReady(() => void this.loadNpcs());
+    this.app.workspace.onLayoutReady(() => void this.init());
+  }
+
+  private async init(): Promise<void> {
+    await this.loadTemplateFolder();
+    await this.loadNpcs();
+  }
+
+  /** Reads the Templates core plugin's folder from `<configDir>/templates.json`. Missing or invalid file: no folder. */
+  private async loadTemplateFolder(): Promise<void> {
+    try {
+      const raw = await this.app.vault.adapter.read(`${this.app.vault.configDir}/templates.json`);
+      this.templateFolder = parseTemplatesFolder(raw);
+    } catch {
+      this.templateFolder = null;
+    }
   }
 
   private isNpcCandidate(file: TFile): boolean {
-    if (this.inBestiary(file.path) || file.path.startsWith("Templates/")) return false;
+    if (this.inBestiary(file.path) || isInFolder(file.path, this.templateFolder)) return false;
     const typ = this.app.metadataCache.getFileCache(file)?.frontmatter?.typ;
     return typeof typ === "string" && NPC_TYPES.has(typ.trim().toLowerCase());
   }
@@ -91,6 +112,8 @@ export class BestiaryRepository {
   }
 
   async loadNpcs(): Promise<void> {
+    // rebuild from scratch: the excluded folder may have changed since notes were cached
+    this.npcs.clear();
     for (const f of this.app.vault.getMarkdownFiles()) {
       if (!this.isNpcCandidate(f)) continue;
       try {
