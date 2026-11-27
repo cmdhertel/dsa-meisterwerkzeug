@@ -35,6 +35,34 @@ describe("parseEncounter", () => {
       { count: 1, countDice: "2W6+1", creature: "Ork" },
     ]);
   });
+  it("does not read a creature starting with X as a multiplier", () => {
+    const { spec, warnings } = parseEncounter("- 2 Xorn\n- 3 xenon\n- 1 Xaver");
+    expect(warnings).toEqual([]);
+    expect(spec.entries).toEqual([
+      { count: 2, creature: "Xorn" },
+      { count: 3, creature: "xenon" },
+      { count: 1, creature: "Xaver" },
+    ]);
+  });
+  it("keeps the spaced and attached multiplier forms", () => {
+    const { spec } = parseEncounter("- 2x Wolf\n- 2 x Wolf\n- 2× Wolf\n- 2 × Wolf\n- 2 X Wolf\n- 3 Wölfe");
+    expect(spec.entries).toEqual([
+      { count: 2, creature: "Wolf" },
+      { count: 2, creature: "Wolf" },
+      { count: 2, creature: "Wolf" },
+      { count: 2, creature: "Wolf" },
+      { count: 2, creature: "Wolf" },
+      { count: 3, creature: "Wölfe" },
+    ]);
+  });
+  it("keeps dice counts with a following creature name", () => {
+    const { spec, warnings } = parseEncounter("- 1W6 Ratten\n- 1W3+1 Wölfe");
+    expect(warnings).toEqual([]);
+    expect(spec.entries).toEqual([
+      { count: 1, countDice: "1W6", creature: "Ratten" },
+      { count: 1, countDice: "1W3+1", creature: "Wölfe" },
+    ]);
+  });
   it("is case-insensitive for override keys and tolerates ':' and '='", () => {
     const { spec } = parseEncounter("- 1x X | lep: 10 | ini=11 | tp 2w6");
     expect(spec.entries[0]).toMatchObject({ lep: 10, ini: 11, tp: "2W6" });

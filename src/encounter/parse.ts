@@ -37,7 +37,9 @@ export interface ParsedEncounter {
 
 export const BLOCK_LANG = "dsa-kampf";
 
-const COUNT_RE = /^(\d+|\d*[WwDd]\d+(?:\s*[+\-–−]\s*\d+)?)(?:\s*[x×X]\s*|\s+)(.+)$/;
+// The multiplier must stand as its own token ("2x", "2 x", "2×", "2 × Wolf"): "x" or "×" followed by whitespace.
+// Without that, "2 Xorn" would read the X of the creature name as a multiplier.
+const COUNT_RE = /^(\d+|\d*[WwDd]\d+(?:\s*[+\-–−]\s*\d+)?)(?:\s*[x×X]\s+|\s+)(.+)$/;
 const LINK_RE = /\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g;
 const INT_FIELDS = ["lep", "ini", "rs", "at", "pa", "vw"] as const;
 type IntField = (typeof INT_FIELDS)[number];
