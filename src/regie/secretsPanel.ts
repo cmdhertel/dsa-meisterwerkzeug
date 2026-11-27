@@ -3,10 +3,12 @@ import { Component, setIcon } from "obsidian";
 import type { RegieCtx } from "./ctx";
 import { renderInline } from "./persons";
 import type { TaskItem } from "./types";
-import { NoteTasks, discoverScenes, loadNoteTasks, toggleTaskInNote } from "./vault";
+import { NoteTasks, SceneSet, discoverScenes, loadNoteTasks, toggleTaskInNote } from "./vault";
 
 export interface SecretsApi {
   render(): Promise<void>;
+  /** Drops cached scene lists; call when scene, chapter or session metadata changed. */
+  invalidate(): void;
 }
 
 
@@ -19,6 +21,15 @@ export function buildSecretsPanel(host: HTMLElement, ctx: RegieCtx): SecretsApi 
   let comp: Component | null = null;
   let token = 0;
   let revealedOpen = false;
+  const sceneCache = new Map<string, SceneSet>();
+  const scenesOf = (sessionPath: string): SceneSet => {
+    let s = sceneCache.get(sessionPath);
+    if (!s) {
+      s = discoverScenes(ctx.app, sessionPath);
+      sceneCache.set(sessionPath, s);
+    }
+    return s;
+  };
 
   const notesOf = async (paths: string[]): Promise<NoteTasks[]> => {
     const out: NoteTasks[] = [];
@@ -35,7 +46,7 @@ export function buildSecretsPanel(host: HTMLElement, ctx: RegieCtx): SecretsApi 
     const all = ctx.sessions().filter((s) => s.campaign === cur.campaign);
     const idx = all.findIndex((s) => s.path === cur.path);
     const earlier = all.filter((s, i) => s.path !== cur.path && (cur.datum && s.datum ? s.datum < cur.datum : i > idx));
-    return earlier.slice(0, Math.max(0, Number(ctx.plugin.settings.regieEarlierSessions ?? 5) || 0)).flatMap((s) => [s.path, ...discoverScenes(ctx.app, s.path).own.map((x) => x.path)]);
+    return earlier.slice(0, Math.max(0, Number(ctx.plugin.settings.regieEarlierSessions ?? 5) || 0)).flatMap((s) => [s.path, ...scenesOf(s.path).own.map((x) => x.path)]);
   };
 
   const row = (list: HTMLElement, n: NoteTasks, t: TaskItem, c: Component, again: () => void) => {
@@ -107,5 +118,5 @@ export function buildSecretsPanel(host: HTMLElement, ctx: RegieCtx): SecretsApi 
     bodyHost.replaceWith(next);
     bodyHost = next;
   };
-  return { render: () => render() };
+  return { render: () => render(), invalidate: () => sceneCache.clear() };
 }

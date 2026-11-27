@@ -42,6 +42,9 @@ export class RegieView extends ItemView implements RegieCtx {
   private flags = new Set<Flag>();
   private timer: number | null = null;
   private partyTimer: number | null = null;
+  private resolvedTimer: number | null = null;
+  /** Frontmatter of the session note and its scene notes at the last refresh (see sigOf). */
+  private relevantSig = "";
 
   constructor(leaf: WorkspaceLeaf, readonly plugin: DsaMeisterwerkzeugPlugin) {
     super(leaf);
@@ -123,6 +126,7 @@ export class RegieView extends ItemView implements RegieCtx {
     if (this.sel && this.sel !== this.sessionPath && !this.set.all.some((s) => s.path === this.sel)) this.sel = this.sessionPath;
   }
   private renderAll(): void {
+    this.relevantSig = this.sigOf();
     this.header.refresh();
     this.rail.render();
     void this.stage.render();
@@ -206,7 +210,7 @@ export class RegieView extends ItemView implements RegieCtx {
       /* calendar not ready: the date chip keeps its placeholder */
     }
     this.registerEvent(this.app.metadataCache.on("changed", (f) => this.onMeta(f)));
-    this.registerEvent(this.app.metadataCache.on("resolved", () => this.later("sessions", "set", "party")));
+    this.registerEvent(this.app.metadataCache.on("resolved", () => this.onResolved()));
     this.registerEvent(this.app.vault.on("rename", (f, old) => this.onRename(f.path, old)));
     this.registerEvent(this.app.vault.on("delete", (f) => this.onDelete(f.path)));
     // heroes load asynchronously after startup
@@ -214,6 +218,7 @@ export class RegieView extends ItemView implements RegieCtx {
     this.register(() => {
       if (this.timer !== null) window.clearTimeout(this.timer);
       if (this.partyTimer !== null) window.clearTimeout(this.partyTimer);
+      if (this.resolvedTimer !== null) window.clearTimeout(this.resolvedTimer);
     });
     this.register(() => this.stage.dispose());
   }
@@ -247,9 +252,27 @@ export class RegieView extends ItemView implements RegieCtx {
       this.rail.render();
     }
     if (f.has("sessions") || f.has("set")) this.header.refresh();
+    if (f.has("sessions") || f.has("set")) this.secrets.invalidate();
     if (f.has("stage") || f.has("set")) void this.stage.render();
     if (f.has("secrets") || f.has("set")) void this.secrets.render();
     if (f.has("party")) this.party.render();
+    this.relevantSig = this.sigOf();
+  }
+  /** Metadata of the session note and its scene notes, as far as the regie shows them. */
+  private sigOf(): string {
+    const paths = [this.sessionPath, ...this.set.all.map((s) => s.path)];
+    return paths.map((p) => `${p ?? ""}\n${JSON.stringify(p ? fmOf(this.app, p) ?? null : null)}`).join("\n");
+  }
+  /**
+   * "resolved" fires for every indexed file and has no file argument, so it is debounced and only
+   * triggers a refresh when the relevant frontmatter actually changed.
+   */
+  private onResolved(): void {
+    if (this.resolvedTimer !== null) window.clearTimeout(this.resolvedTimer);
+    this.resolvedTimer = window.setTimeout(() => {
+      this.resolvedTimer = null;
+      if (this.sigOf() !== this.relevantSig) this.later("sessions", "set", "party");
+    }, 500);
   }
   private onMeta(file: TFile): void {
     const typ = String(fmOf(this.app, file.path)?.typ ?? "").toLowerCase();
