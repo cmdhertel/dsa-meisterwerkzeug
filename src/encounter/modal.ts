@@ -1,7 +1,7 @@
 // Builder modal ("Begegnung bauen").
 import { MarkdownView, Modal, Notice } from "obsidian";
 import type DsaMeisterwerkzeugPlugin from "../main";
-import { CatalogEntry } from "./build";
+import { CatalogEntry, indexCatalog, lookupCreature } from "./build";
 import { loadEncounter } from "./load";
 import { EncounterEntry, EncounterSpec, emptySpec, parseCountText, splitHelden, toBlock } from "./parse";
 import { renderEstimatePanel } from "./panel";
@@ -183,9 +183,10 @@ export class EncounterBuilderModal extends Modal {
     const el = this.chosenEl;
     el.empty();
     if (!this.spec.entries.length) el.createDiv({ text: "Noch keine Gegner. Links auf eine Kreatur klicken.", cls: "dsa-mw-muted" });
-    const byName = new Map(this.catalog.map((c) => [c.basename.toLowerCase(), c] as const));
+    // same rule as build/load: the first catalog entry wins for a duplicate name
+    const index = indexCatalog(this.catalog);
     this.spec.entries.forEach((e, i) => {
-      const cat = byName.get(e.creature.trim().toLowerCase()) ?? this.catalog.find((c) => c.name.toLowerCase() === e.creature.trim().toLowerCase()) ?? null;
+      const cat = lookupCreature(index, e.creature);
       const adhoc = !cat || cat.status === "nostats";
       const box = el.createDiv({ cls: "dsa-enc-entry" });
       const top = box.createDiv({ cls: "dsa-enc-entry-top" });

@@ -3,7 +3,7 @@ import { fixedRoller } from "../src/engine/dice";
 import type { Combatant, Weapon } from "../src/model";
 import { CombatStore } from "../src/combat/store";
 import { parseCreature } from "../src/bestiary/adapter";
-import { CatalogEntry, creatureMeta, estimateEncounter, indexCatalog, resolveEntries, resolveHelden, rollCounts } from "../src/encounter/build";
+import { CatalogEntry, creatureMeta, estimateEncounter, indexCatalog, lookupCreature, resolveEntries, resolveHelden, rollCounts } from "../src/encounter/build";
 import { Unit, estimate, manualPartyUnit, rate, unitFromCombatant, DEFAULT_FALLBACK } from "../src/encounter/estimate";
 import { parseEncounter, replaceBlockBody, serializeEncounter, toBlock } from "../src/encounter/parse";
 
@@ -114,6 +114,16 @@ function cat(basename: string, fm: Record<string, unknown>): CatalogEntry {
   return { path: `30 - Bestiarium/${basename}.md`, basename, name: r.combatant.name, combatant: r.combatant, status: r.status, problems: r.problems, ...meta };
 }
 const index = indexCatalog([cat("Wolf", wolfFm), cat("Dämon", varFm)]);
+
+describe("duplicate creature names", () => {
+  it("the first catalog entry wins for the same name (build, load and builder share this rule)", () => {
+    const first = cat("Wolf", { ...wolfFm, lep: 10 });
+    const second = cat("Wolf", { ...wolfFm, lep: 99 });
+    const idx = indexCatalog([first, second]);
+    expect(lookupCreature(idx, "wolf")).toBe(first);
+    expect(lookupCreature(idx, "WOLF")).toBe(first);
+  });
+});
 
 describe("creatureMeta", () => {
   it("reads anzahl, typus, tags and numeric aktionen", () => {
