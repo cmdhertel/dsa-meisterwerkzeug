@@ -95,6 +95,19 @@ export function emptyWeaponEntry(): WeaponEntry {
   return { name: "", kampftechnik: "", tp: "", atMod: 0, paMod: 0, rw: "" };
 }
 
+/**
+ * A hand-written entry is either an object or a bare string (the name, e.g. `"534": "Feuerball"`).
+ * Strings become a full entry with defaults for the category, so the entry is kept and not replaced by a stub.
+ */
+function normalizeEntry(cat: MappingCategory, v: unknown): unknown {
+  if (typeof v === "string") {
+    if (cat === "waffenNahkampf" || cat === "waffenFernkampf") return { ...emptyWeaponEntry(), name: v };
+    if (cat === "ruestung") return { name: v, rs: 0, be: 0 };
+    return { name: v };
+  }
+  return v && typeof v === "object" ? v : undefined;
+}
+
 /** Parse mapping text. Returns null if it is not valid JSON/object (caller must then NOT overwrite the file). */
 export function parseMapping(text: string): HeroMapping | null {
   let raw: unknown;
@@ -111,7 +124,8 @@ export function parseMapping(text: string): HeroMapping | null {
     const sec = r[cat];
     if (sec && typeof sec === "object" && !Array.isArray(sec)) {
       for (const [k, v] of Object.entries(sec as Record<string, unknown>)) {
-        if (v && typeof v === "object") (out[cat] as Record<string, unknown>)[k] = v;
+        const entry = normalizeEntry(cat, v);
+        if (entry) (out[cat] as Record<string, unknown>)[k] = entry;
       }
     }
   }
