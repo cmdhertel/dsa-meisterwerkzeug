@@ -61,7 +61,7 @@
 .dsa-cp-warn { color: var(--text-warning, var(--text-error)); }
 .dsa-cp-error { color: var(--text-error); }
 .dsa-cp-lep { position: relative; flex: 1; min-width: 90px; height: 18px; background: var(--background-modifier-border); border-radius: 4px; overflow: hidden; }
-.dsa-cp-lepfill { position: absolute; inset: 0 auto 0 0; }
+.dsa-cp-lepfill { position: absolute; inset: 0 auto 0 0; width: var(--dsa-w, 0%); }
 .dsa-cp-lepfill.ok { background: var(--color-green); }
 .dsa-cp-lepfill.warn { background: var(--color-orange); }
 .dsa-cp-lepfill.crit { background: var(--color-red); }
@@ -125,7 +125,7 @@
 /* AsP / KaP pools */
 .dsa-cp-en { position: relative; display: flex; flex-direction: column; gap: 1px; min-width: 90px; flex: 1; cursor: pointer; }
 .dsa-cp-enbar { height: 6px; background: var(--background-modifier-border); border-radius: 3px; overflow: hidden; }
-.dsa-cp-enfill { height: 100%; }
+.dsa-cp-enfill { height: 100%; width: var(--dsa-w, 0%); }
 .dsa-cp-en-asp .dsa-cp-enfill { background: var(--color-blue); }
 .dsa-cp-en-kap .dsa-cp-enfill { background: var(--color-yellow); }
 .dsa-cp-entext { font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; order: -1; }
@@ -744,3 +744,8 @@
 .dsa-warning {
   color: var(--text-warning);
 }
+
+/* cockpit */
+.dsa-cp-input-dice { width: 7em; }
+.dsa-cp-input-mod { width: 4.5em; }
+.dsa-cp-fx-remove { min-height: 0; padding: 0 0 0 4px; margin: 0; border: none; background: transparent; box-shadow: none; color: inherit; line-height: 1; cursor: pointer; }

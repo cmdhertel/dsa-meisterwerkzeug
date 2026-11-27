@@ -1,10 +1,10 @@
 // Pure helpers for the Kampf-Cockpit (no obsidian imports): encounter parsing, drag payloads, attack setup.
-import { DEFENSE_STEP } from "../engine/constants";
+import { DEFENSE_STEP, RANGED_DEFENSE_MOD } from "../engine/constants";
 import type { AttackKind, AttackParams, AttackResult, CheckResult, RangedDefenseKind } from "../engine/combat";
 import { computeValue } from "../engine/combat";
 import { tryParseDice } from "../engine/dice";
 import { Reach } from "../engine/effectConstants";
-import { defenseBlockedReason, effectsOf, incapacitatingStatus, reachFromText, statusModifiers, statusNotes, timedStateLevels } from "../engine/effects";
+import { defenseBlockFor, effectsOf, incapacitatingStatus, reachFromText, statusModifiers, statusNotes, timedStateLevels } from "../engine/effects";
 import {
   STATE_LABELS,
   StateId,
@@ -177,7 +177,7 @@ export const ROMAN = ["", "I", "II", "III", "IV"];
 
 /** Why this combatant cannot defend with the given defense kind (Status or incapacitating Zustand), or null. */
 export function defenseBlock(e: CombatEntry, kind: "PA" | "VW"): string | null {
-  return defenseBlockedReason(effectsOf(e), kind, incapacitatedBy(entryLevels(e)).length > 0);
+  return defenseBlockFor(effectsOf(e), entryLevels(e), kind);
 }
 /** True when a Status (Bewusstlos, Handlungsunfähig) or a Zustand IV makes the combatant incapacitated. */
 export const isDownByEffects = (e: CombatEntry): boolean => incapacitatedBy(entryLevels(e)).length > 0 || incapacitatingStatus(effectsOf(e)).length > 0;
@@ -317,7 +317,7 @@ export function previewAttack(i: AttackInput): { attack: PreviewCheck; defense: 
   let defense: PreviewCheck | null = null;
   if (defenseUsed) {
     const dm = [...(p.defender.modifiers ?? [])];
-    if (i.kind === "fernkampf" && i.rangedType) dm.push({ label: i.rangedType === "schuss" ? "Schusswaffenangriff" : "Wurfwaffenangriff", value: i.rangedType === "schuss" ? -4 : -2 });
+    if (i.kind === "fernkampf" && i.rangedType) dm.push({ label: i.rangedType === "schuss" ? "Schusswaffenangriff" : "Wurfwaffenangriff", value: RANGED_DEFENSE_MOD[i.rangedType] });
     const counter = p.defender.defensePenalty ?? 0;
     const lines: PreviewLine[] = [{ label: defenseUsed.kind === "PA" ? "PA" : "Ausweichen", value: defenseUsed.value }, ...dm, ...statePenaltyLines(i.defender)];
     if (counter) lines.push({ label: "Verteidigungen in dieser KR", value: -counter });
@@ -341,6 +341,13 @@ export const weaponValue = (w: Weapon | null): number | null => (w ? (w.kind ===
 /** Defense counter step to apply when the GM counts a defense by hand. */
 export function manualDefenseDelta(e: Pick<CombatEntry, "defenseMode">): { defensesDelta: number; defensePenaltyDelta: number } {
   return { defensesDelta: 1, defensePenaltyDelta: e.defenseMode === "cumulative" ? DEFENSE_STEP : 0 };
+}
+
+// ---------------------------------------------------------------- heroes in the fight
+
+/** True when this hero already fights: same note (sourcePath), or, for a hero without a note, the same name. */
+export function heroInCombat(entries: readonly Pick<CombatEntry, "kind" | "name" | "sourcePath">[], hero: { name: string; notePath?: string }): boolean {
+  return entries.some((e) => e.kind === "hero" && (hero.notePath ? e.sourcePath === hero.notePath : e.name === hero.name));
 }
 
 // ---------------------------------------------------------------- manual combatants

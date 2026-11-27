@@ -4,7 +4,8 @@ import { Hero, heroToCombatant } from "../hero/model";
 import type { Combatant } from "../model";
 import type DsaMeisterwerkzeugPlugin from "../main";
 import { HeroChoice, ManualHeroInput, pickHeroes, promptCount, promptManualHero, promptStats, suggestCreature } from "./dialogs";
-import { manualCombatant, matchCreatureName, needsStatsPrompt, parseDragPayload, parseEncounterBlocks } from "./logic";
+import { internalDraggable } from "./internalApi";
+import { heroInCombat, manualCombatant, matchCreatureName, needsStatsPrompt, parseDragPayload, parseEncounterBlocks } from "./logic";
 
 /** Hero -> Combatant; starts with LeP_aktuell from the hero note (written by Rast) if present, else full LeP. */
 export function heroCombatant(plugin: DsaMeisterwerkzeugPlugin, hero: Hero): Combatant {
@@ -54,21 +55,19 @@ export const campaignOf = (plugin: DsaMeisterwerkzeugPlugin, notePath?: string):
 };
 
 export async function addHeroesFlow(plugin: DsaMeisterwerkzeugPlugin): Promise<void> {
-  const inCombat = new Set(plugin.combat.entries.filter((e) => e.kind === "hero").map((e) => e.name));
   const heroes = plugin.heroes.all();
-  const choices: HeroChoice[] = heroes.map((h) => ({
-    id: h.uid,
-    label: h.name,
-    campaign: campaignOf(plugin, h.notePath),
-    disabledHint: inCombat.has(h.name) ? "bereits im Kampf" : undefined,
-  }));
+  const choices: HeroChoice[] = heroes.map((h) => {
+    const busy = heroInCombat(plugin.combat.entries, h);
+    return { id: h.uid, label: h.name, campaign: campaignOf(plugin, h.notePath), disabled: busy, disabledHint: busy ? "bereits im Kampf" : undefined };
+  });
   const res = await pickHeroes(plugin.app, choices);
   if (!res) return;
   if (res.manual) return void (await addManualHero(plugin));
   let n = 0;
   for (const id of res.ids) {
     const h = plugin.heroes.getByUid(id);
-    if (!h) continue;
+    // checked again per hero: the same hero must not enter twice ("Held" and "Held 2")
+    if (!h || heroInCombat(plugin.combat.entries, h)) continue;
     plugin.combat.addCombatant(heroCombatant(plugin, h));
     n++;
   }
@@ -96,6 +95,7 @@ export function resolveFile(plugin: DsaMeisterwerkzeugPlugin, pathOrLink: string
 export async function addFromFile(plugin: DsaMeisterwerkzeugPlugin, file: TFile): Promise<void> {
   const hero = plugin.heroes.getByPath(file.path);
   if (hero) {
+    if (heroInCombat(plugin.combat.entries, hero)) return void new Notice(`${hero.name} ist bereits im Kampf.`);
     plugin.combat.addCombatant(heroCombatant(plugin, hero));
     new Notice(`${hero.name} hinzugefügt.`);
     return;
@@ -112,9 +112,8 @@ export async function addFromFile(plugin: DsaMeisterwerkzeugPlugin, file: TFile)
 export function filesFromDrop(plugin: DsaMeisterwerkzeugPlugin, e: DragEvent): TFile[] {
   const out = new Map<string, TFile>();
   try {
-    // Obsidian's internal drag manager (not an official API)
-    const dm = (plugin.app as unknown as { dragManager?: { draggable?: { file?: TFile; files?: TFile[] } } }).dragManager;
-    const d = dm?.draggable;
+    // Obsidian's internal drag manager (not an official API, see internalApi.ts); absent = no files from the explorer
+    const d = internalDraggable(plugin.app);
     for (const f of [d?.file, ...(d?.files ?? [])]) if (f && typeof f.path === "string") out.set(f.path, f);
   } catch {
     /* ignore */

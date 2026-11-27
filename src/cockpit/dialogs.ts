@@ -174,6 +174,8 @@ export interface HeroChoice {
   id: string;
   label: string;
   campaign: string;
+  /** already in the fight: cannot be selected again */
+  disabled?: boolean;
   disabledHint?: string;
 }
 
@@ -191,7 +193,8 @@ export function pickHeroes(app: App, heroes: HeroChoice[], onlyManualLabel = "Ma
       for (const h of shown) {
         const row = list.createEl("label", { cls: "dsa-cp-heropick" });
         const cb = row.createEl("input", { type: "checkbox" });
-        cb.checked = chosen.has(h.id);
+        cb.disabled = !!h.disabled;
+        cb.checked = !h.disabled && chosen.has(h.id);
         cb.addEventListener("change", () => (cb.checked ? chosen.add(h.id) : chosen.delete(h.id)));
         row.createSpan({ text: h.label });
         if (h.disabledHint) row.createSpan({ text: ` (${h.disabledHint})`, cls: "dsa-mw-muted" });

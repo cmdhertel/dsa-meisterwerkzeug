@@ -4,7 +4,7 @@ import {
 } from "./effectConstants";
 import { Roller, defaultRoller, rollDice, tryParseDice } from "./dice";
 import type { CombatPatch } from "./patch";
-import { STATE_IDS, STATE_LABELS, StateId, StateLevels, clampLevel } from "./states";
+import { STATE_IDS, STATE_LABELS, StateId, StateLevels, clampLevel, incapacitatedBy } from "./states";
 import type { Modifier } from "./types";
 
 export type EffectKind = "zustand" | "status" | "frei";
@@ -179,6 +179,14 @@ export function defenseBlockedReason(effects: readonly Effect[], kind: "PA" | "V
   }
   if (incapacitatedByState && !INCAPACITATED_CAN_DEFEND) return "handlungsunfähig: kann nicht verteidigen";
   return null;
+}
+
+/**
+ * Single source for "can this combatant defend with PA/VW?". Incapacitated = a Zustand at IV (levels include the
+ * LeP-derived Schmerz, so LeP <= 0 counts) or an incapacitating Status. Use this instead of re-deriving the flag.
+ */
+export function defenseBlockFor(effects: readonly Effect[], levels: Record<StateId, number>, kind: "PA" | "VW"): string | null {
+  return defenseBlockedReason(effects, kind, incapacitatedBy(levels).length > 0 || incapacitatingStatus(effects).length > 0);
 }
 
 /** GM notes for the active statuses (rule reminders). */

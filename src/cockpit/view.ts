@@ -314,7 +314,7 @@ export class CockpitView extends ItemView {
     const box = parent.createDiv({ cls: `dsa-cp-en dsa-cp-en-${kind.toLowerCase()}` });
     box.setAttr("aria-label", `${kind} ${en.cur} von ${en.max} – klicken zum Ändern${e.kind === "hero" ? " (wird in der Heldennotiz gespeichert)" : ""}`);
     const bar = box.createDiv({ cls: "dsa-cp-enbar" });
-    bar.createDiv({ cls: "dsa-cp-enfill" }).style.width = `${energyPct(en.max, spent)}%`;
+    bar.createDiv({ cls: "dsa-cp-enfill" }).setCssProps({ "--dsa-w": `${energyPct(en.max, spent)}%` });
     box.createSpan({ text: `${kind} ${en.cur}/${en.max}`, cls: "dsa-cp-entext" });
     box.addEventListener("click", async () => {
       const v = await promptEnergy(this.app, `${e.name}: ${kind}`, en.cur, en.max);
@@ -326,7 +326,7 @@ export class CockpitView extends ItemView {
     const bar = parent.createDiv({ cls: thin ? "dsa-cp-lep dsa-cp-lep-thin" : "dsa-cp-lep" });
     const pct = e.lepMax > 0 ? Math.max(0, Math.min(100, (e.lep / e.lepMax) * 100)) : 0;
     const fill = bar.createDiv({ cls: "dsa-cp-lepfill" });
-    fill.style.width = `${pct}%`;
+    fill.setCssProps({ "--dsa-w": `${pct}%` });
     fill.addClass(pct > 50 ? "ok" : pct > 25 ? "warn" : "crit");
     if (!thin) bar.createSpan({ text: `${e.lep} / ${e.lepMax}`, cls: "dsa-cp-leptext" });
     return pct;

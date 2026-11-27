@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { CombatStore } from "../src/combat/store";
+import { CombatStore, CombatState, orderEntries } from "../src/combat/store";
 import type { Combatant } from "../src/model";
 import { buildAventurischTree, toHtml, toRoman } from "../src/share/aventurisch";
 import { SHARE_DEFAULTS, buildPlayerView, conditionWord, optionsFromSettings, parseBlockOptions } from "../src/share/viewModel";
 
-const mk = (name: string, kind: "hero" | "creature", lepMax = 40, iniBase = 10): Combatant => ({ name, kind, sourcePath: "", lepMax, iniBase, rs: 0, vw: null, weapons: [], needsManual: [] });
+/** State whose acting combatant is the one at position `i` of the acting order (-1 = nobody). */
+const at = (st: CombatState, i: number): CombatState => ({ ...st, currentId: orderEntries(st.entries)[i]?.id ?? null });
+
+const mk =(name: string, kind: "hero" | "creature", lepMax = 40, iniBase = 10): Combatant => ({ name, kind, sourcePath: "", lepMax, iniBase, rs: 0, vw: null, weapons: [], needsManual: [] });
 const opts = optionsFromSettings(SHARE_DEFAULTS);
 
 function fight() {
@@ -49,7 +52,7 @@ describe("buildPlayerView", () => {
 
   it("order, turn highlight, next marker, INI visibility", () => {
     const { s } = fight();
-    const v = buildPlayerView({ ...s.state, turnIndex: 0 }, opts);
+    const v = buildPlayerView(at(s.state, 0), opts);
     expect(v.rows.map((r) => r.name)).toEqual(s.order().map((e) => e.name));
     expect(v.rows.map((r) => [r.current, r.next])).toEqual([[true, false], [false, true], [false, false]]);
     expect(v.rows[0].ini).toBe("INI 16");
@@ -59,7 +62,7 @@ describe("buildPlayerView", () => {
 
   it("no one acting yet: first is next", () => {
     const { s } = fight();
-    const st = { ...s.state, turnIndex: -1 };
+    const st = at(s.state, -1);
     const v = buildPlayerView(st, opts);
     expect(v.rows.some((r) => r.current)).toBe(false);
     expect(v.rows[0].next).toBe(true);
@@ -117,10 +120,10 @@ describe("buildPlayerView", () => {
   it("hidden combatant acting shows a neutral placeholder; next skips hidden", () => {
     const { s, ork, wolf } = fight();
     s.patchEntry(ork.id, "verborgen", { hidden: true });
-    let v = buildPlayerView({ ...s.state, turnIndex: 0 }, opts);
+    let v = buildPlayerView(at(s.state, 0), opts);
     expect(v.rows.map((r) => r.name)).toEqual(["Thorwin", "Wolf"]);
     expect(v.rows.some((r) => r.next)).toBe(false); // next (Ork) is hidden: nobody marked
-    v = buildPlayerView({ ...s.state, turnIndex: 1 }, opts);
+    v = buildPlayerView(at(s.state, 1), opts);
     expect(v.rows.map((r) => r.name)).toEqual(["Thorwin", "…", "Wolf"]);
     const ph = v.rows[1];
     expect(ph).toMatchObject({ placeholder: true, current: true, ini: null, word: null, lepText: null, states: [] });
@@ -168,7 +171,7 @@ describe("aventurisch renderer", () => {
 
   it("round in Roman numerals, current seal, next tag, hero/foe classes", () => {
     const { s } = fight();
-    const out = html({ ...s.state, round: 3, turnIndex: 0 });
+    const out = html({ ...at(s.state, 0), round: 3 });
     expect(out).toContain('aria-label="Kampfrunde 3"');
     expect(out).toMatch(/dsa-psa-dropcap">I<\/span><span class="dsa-psa-roman">II</);
     expect(out).toContain("dsa-psa-seal");
@@ -198,12 +201,12 @@ describe("aventurisch renderer", () => {
   it("hidden combatants and secret effects do not leak", () => {
     const { s, ork, wolf } = fight();
     s.patchEntry(ork.id, "verborgen", { hidden: true });
-    const out = html({ ...s.state, turnIndex: 1 });
+    const out = html(at(s.state, 1));
     expect(out).not.toContain("Ork");
     expect(out).toContain("Wolf");
     expect(out).toContain("dsa-psa-banner is-foe is-current is-hidden");
     expect(out).not.toMatch(/\/ 40/); // Ork's LeP max
-    const v = buildPlayerView({ ...s.state, turnIndex: 0 }, opts);
+    const v = buildPlayerView(at(s.state, 0), opts);
     expect(JSON.stringify(buildAventurischTree(v))).not.toContain("Ork");
   });
 

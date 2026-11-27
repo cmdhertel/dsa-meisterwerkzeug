@@ -23,7 +23,7 @@ export function effectTooltip(e: Effect): string {
   if (e.mods) parts.push(["AT", "PA", "VW"].map((k) => ({ k, v: e.mods?.[k.toLowerCase() as "at" | "pa" | "vw"] })).filter((x) => x.v).map((x) => `${x.k} ${x.v}`).join(", "));
   if (e.source) parts.push(`Quelle: ${e.source}`);
   if (e.gmNote) parts.push(e.gmNote);
-  parts.push("Klick: ändern · Rechtsklick: entfernen");
+  parts.push("Klick: ändern · × oder Rechtsklick: entfernen");
   return parts.filter(Boolean).join("\n");
 }
 
@@ -51,6 +51,12 @@ export function renderEffectChips(parent: HTMLElement, store: CombatStore, e: Co
     chip.createSpan({ text: ` · ${durationText(fx)}`, cls: "dsa-cp-fx-dur" });
     if (fx.tick) chip.createSpan({ text: fx.tick.mode === "damage" ? ` ${fx.tick.dice}↓` : ` ${fx.tick.dice}↑`, cls: "dsa-cp-fx-tick" });
     if (fx.secret) chip.createSpan({ text: " 🙈" });
+    // touch path: the × removes the effect (right-click does the same on desktop)
+    const remove = chip.createEl("button", { text: "×", cls: "dsa-cp-fx-remove", attr: { "aria-label": `${effectLabel(fx)} entfernen` } });
+    remove.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      store.removeEffect(e.id, fx.id);
+    });
     chip.setAttr("aria-label", effectTooltip(fx));
     chip.addEventListener("click", () => new EffectModal(app, store, e.id, fx).open());
     chip.addEventListener("contextmenu", (ev) => {
@@ -163,7 +169,7 @@ export class EffectModal extends Modal {
     new Setting(el).setName("Quelle").addText((t) => t.setValue(this.source).setPlaceholder("z. B. Feuerball, Giftpfeil").onChange((v) => (this.source = v)));
     new Setting(el).setName("Pro KR (zu Beginn des Zuges)").setDesc("Würfel, z. B. 1W6 oder 1W3+1; leer = nichts").addText((t) => {
       t.setValue(this.tickDice).setPlaceholder("1W6").onChange((v) => (this.tickDice = v));
-      t.inputEl.style.width = "7em";
+      t.inputEl.addClass("dsa-cp-input-dice");
     }).addDropdown((d) => d.addOption("damage", "Schaden (SP)").addOption("heal", "Heilung (LeP)").setValue(this.tickMode).onChange((v) => (this.tickMode = v as "damage" | "heal")));
     if (isFree) {
       new Setting(el).setName("Modifikatoren AT / PA / VW").setDesc("negativ = schwerer").addText((t) => this.num(t, this.at, "AT", (v) => (this.at = v))).addText((t) => this.num(t, this.pa, "PA", (v) => (this.pa = v))).addText((t) => this.num(t, this.vw, "VW", (v) => (this.vw = v)));
@@ -183,7 +189,7 @@ export class EffectModal extends Modal {
   private num(t: import("obsidian").TextComponent, v: string, ph: string, set: (v: string) => void) {
     t.setValue(v).setPlaceholder(ph).onChange(set);
     t.inputEl.type = "number";
-    t.inputEl.style.width = "4.5em";
+    t.inputEl.addClass("dsa-cp-input-mod");
   }
 
   private save(err: HTMLElement) {

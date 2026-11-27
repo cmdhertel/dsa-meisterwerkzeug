@@ -6,7 +6,7 @@ import { BodyType, LastHit, SizeCat, ZONE_LABEL, ZoneDamage, ZoneKey, ZoneRsMap,
 import { CombatPatch, applyPatch } from "../engine/patch";
 import type { StatusId } from "../engine/effectConstants";
 import {
-  Effect, NewEffect, advanceDurations, defenseBlockedReason, describeExpiry, describeTick, durationText, effectLabel, effectsOf,
+  Effect, NewEffect, advanceDurations, defenseBlockFor, describeExpiry, describeTick, durationText, effectLabel, effectsOf,
   incapacitatingStatus, makeEffect, normalizeEffects, rollTicks, tickPatch, timedStateLevels,
 } from "../engine/effects";
 import { PenaltyContext, StateId, StateLevels, clampLevel, effectiveLevels, incapacitatedBy, totalStatePenalty } from "../engine/states";
@@ -65,11 +65,51 @@ export interface CombatEntry {
 export interface CombatState {
   version: 1;
   round: number;
-  /** index into order() of the acting combatant; -1 = nobody yet */
-  turnIndex: number;
+  /** id of the acting combatant; null = nobody yet. Stored by id so that list changes do not move the turn. */
+  currentId: string | null;
   entries: CombatEntry[];
-  /** undo snapshots (JSON of the state without history), newest last */
+  /**
+   * undo snapshots (JSON of the state without history), newest last. In memory only: never persisted
+   * (see CombatStore.persistable), so data.json does not grow with every change.
+   */
   history: { label: string; snapshot: string; /** ids whose AsP/KaP this step changed by hand */ energyIds?: string[] }[];
+}
+
+/** Minimal shape needed for the acting order. */
+export interface OrderableEntry {
+  id: string;
+  iniBase: number;
+  iniRoll: number | null;
+}
+
+/** Entries in acting order (INI desc, tie: INI base, tie: the 1W6). Entries without a roll come last, in list order. */
+export function orderEntries<T extends OrderableEntry>(entries: readonly T[]): T[] {
+  const byId = new Map(entries.map((e) => [e.id, e]));
+  const rolled = entries.filter((e) => e.iniRoll !== null);
+  const rest = entries.filter((e) => e.iniRoll === null);
+  return [...sortInitiative(rolled.map((e) => ({ id: e.id, base: e.iniBase, roll: e.iniRoll as number }))).map((x) => byId.get(x.id) as T), ...rest];
+}
+
+/**
+ * Lowest free name for a new combatant: the base name if free, else "Base 2", "Base 3", ... (first gap wins).
+ * [Wolf, Wolf 2, Wolf 3] minus "Wolf 2" plus a new wolf gives "Wolf 2" again.
+ */
+export function uniqueCombatName(base: string, existing: readonly string[]): string {
+  const taken = new Set(existing);
+  if (!taken.has(base)) return base;
+  let n = 2;
+  while (taken.has(`${base} ${n}`)) n++;
+  return `${base} ${n}`;
+}
+
+/**
+ * Current actor of a persisted state. Accepts the new `currentId` and the legacy `turnIndex` (index into the
+ * acting order of the entries); anything unknown yields null.
+ */
+export function migrateCurrentId(raw: { currentId?: unknown; turnIndex?: unknown }, entries: readonly OrderableEntry[]): string | null {
+  if (typeof raw.currentId === "string") return entries.some((e) => e.id === raw.currentId) ? raw.currentId : null;
+  if (typeof raw.turnIndex === "number" && Number.isInteger(raw.turnIndex)) return orderEntries(entries)[raw.turnIndex]?.id ?? null;
+  return null;
 }
 
 export type CombatEventType = "add" | "remove" | "update" | "initiative" | "turn" | "round" | "undo" | "clear" | "load" | "effect";
@@ -86,7 +126,7 @@ export type CombatListener = (e: CombatEvent) => void;
 
 export const MAX_HISTORY = 50;
 
-export const emptyCombatState = (): CombatState => ({ version: 1, round: 1, turnIndex: -1, entries: [], history: [] });
+export const emptyCombatState = (): CombatState => ({ version: 1, round: 1, currentId: null, entries: [], history: [] });
 
 /** Fill fields that older saves lack (effects, states, counters). Mutates a copy of each entry only. */
 function sanitizeZoneDamage(raw: unknown): ZoneDamage | undefined {
@@ -160,30 +200,39 @@ export class CombatStore {
     }
     this.scheduleSave();
   }
+  /** The state as written to data.json: without the undo history (kept in memory only). */
+  private persistable(): CombatState {
+    return { ...this.s, history: [] };
+  }
   private scheduleSave() {
     if (this.saveTimer) clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => {
       this.saveTimer = null;
-      void this.persist(this.s);
+      void this.persist(this.persistable());
     }, 300);
   }
   /** Persist immediately (call on plugin unload). */
   async flush(): Promise<void> {
     if (this.saveTimer) clearTimeout(this.saveTimer);
     this.saveTimer = null;
-    await this.persist(this.s);
+    await this.persist(this.persistable());
   }
 
-  /** Load a persisted state (tolerates null/garbage). */
+  /**
+   * Load a persisted state (tolerates null/garbage). Legacy saves with `turnIndex` are mapped to `currentId`.
+   * The undo history is not restored (it is never persisted).
+   */
   load(data: unknown): void {
-    const d = data as Partial<CombatState> | null;
+    const d = data as (Partial<CombatState> & { turnIndex?: unknown }) | null;
     if (d && d.version === 1 && Array.isArray(d.entries)) {
+      const entries = d.entries.map((x) => migrateEntry(x));
       this.s = {
-        ...emptyCombatState(),
-        ...d,
-        entries: d.entries.map((x) => migrateEntry(x)),
-        history: Array.isArray(d.history) ? d.history : [],
-      } as CombatState;
+        version: 1,
+        round: typeof d.round === "number" && d.round >= 1 ? d.round : 1,
+        currentId: migrateCurrentId(d, entries),
+        entries,
+        history: [],
+      };
     } else this.s = emptyCombatState();
     this.listeners.forEach((l) => l({ type: "load", ids: [] }));
   }
@@ -223,9 +272,7 @@ export class CombatStore {
    * stay flagged until setLepMax / setIniBase is called; until then they count as 0.
    */
   addCombatant(c: Combatant, opts: { lepMax?: number; iniBase?: number; name?: string; defenseMode?: DefenseMode } = {}): CombatEntry {
-    const baseName = opts.name ?? c.name;
-    const same = this.s.entries.filter((e) => e.name === baseName || new RegExp(`^${escapeRe(baseName)} \\d+$`).test(e.name)).length;
-    const name = same === 0 ? baseName : `${baseName} ${same + 1}`;
+    const name = uniqueCombatName(opts.name ?? c.name, this.s.entries.map((e) => e.name));
     const lepMax = opts.lepMax ?? c.lepMax ?? 0;
     const iniBase = opts.iniBase ?? c.iniBase ?? 0;
     const needsManual = c.needsManual.filter((f) => !(f === "lep" && opts.lepMax !== undefined) && !(f === "ini" && opts.iniBase !== undefined));
@@ -279,8 +326,13 @@ export class CombatStore {
     const e = this.get(id);
     if (!e) return;
     this.mutate(`${e.name} entfernt`, "remove", [id], () => {
+      const oldPos = orderEntries(this.s.entries).findIndex((x) => x.id === id);
       this.s.entries = this.s.entries.filter((x) => x.id !== id);
-      this.s.turnIndex = Math.min(this.s.turnIndex, this.s.entries.length - 1);
+      if (this.s.currentId === id) {
+        // the removed actor's turn passes to whoever took its place in the order (clamped to the last one)
+        const after = orderEntries(this.s.entries);
+        this.s.currentId = after.length ? after[Math.min(oldPos, after.length - 1)].id : null;
+      }
     });
   }
 
@@ -407,7 +459,7 @@ export class CombatStore {
   defenseBlock(id: string, kind: "PA" | "VW"): string | null {
     const e = this.get(id);
     if (!e) return null;
-    return defenseBlockedReason(effectsOf(e), kind, this.isDown(id) && e.lep > 0);
+    return defenseBlockFor(effectsOf(e), effectiveLevels(e.states, e.lep, e.lepMax, timedStateLevels(effectsOf(e))), kind);
   }
 
   // ------------------------------------------------------------ timed effects
@@ -486,11 +538,14 @@ export class CombatStore {
   }
 
   // ------------------------------------------------------------ initiative / rounds
-  /** Roll INI for everyone (or only those without a roll). `roller` injectable. */
+  /**
+   * Roll INI for everyone (the turn goes back to the first actor) or, with onlyMissing, only for those without a roll
+   * (the turn stays where it is). `roller` injectable.
+   */
   rollAllInitiative(roller: Roller = defaultRoller, onlyMissing = false): void {
     this.mutate("Initiative gewürfelt", "initiative", this.s.entries.map((e) => e.id), () => {
       for (const e of this.s.entries) if (!onlyMissing || e.iniRoll === null) e.iniRoll = rollInitiative(e.iniBase, roller).roll;
-      this.s.turnIndex = this.s.entries.length ? 0 : -1;
+      if (!onlyMissing) this.s.currentId = this.order()[0]?.id ?? null;
     });
   }
   setInitiativeRoll(id: string, roll: number): void {
@@ -498,25 +553,24 @@ export class CombatStore {
     if (!e) return;
     this.mutate(`${e.name}: INI-Wurf ${roll}`, "initiative", [id], () => (e.iniRoll = roll));
   }
-  /** Entries in acting order (INI desc, tie: INI base, tie: the 1W6). Entries without a roll come last. */
+  /** Entries in acting order (see orderEntries). */
   order(): CombatEntry[] {
-    const rolled = this.s.entries.filter((e) => e.iniRoll !== null);
-    const rest = this.s.entries.filter((e) => e.iniRoll === null);
-    return [...sortInitiative(rolled.map((e) => ({ id: e.id, base: e.iniBase, roll: e.iniRoll as number }))).map((x) => this.get(x.id) as CombatEntry), ...rest];
+    return orderEntries(this.s.entries);
   }
+  /** Id of the acting combatant, or null (nobody yet). */
   currentId(): string | null {
-    const o = this.order();
-    return o[this.s.turnIndex]?.id ?? null;
+    return this.s.currentId !== null && this.get(this.s.currentId) ? this.s.currentId : null;
   }
   /** Advance to the next acting combatant; after the last one a new round starts. */
   nextTurn(roller: Roller = defaultRoller): void {
     const order = this.order();
     const n = order.length;
     if (!n) return;
-    if (this.s.turnIndex + 1 >= n) return this.nextRound(roller);
-    const next = order[this.s.turnIndex + 1];
-    this.mutate("Nächster Zug", "turn", next ? [next.id] : [], () => {
-      this.s.turnIndex++;
+    const idx = order.findIndex((e) => e.id === this.currentId());
+    if (idx + 1 >= n) return this.nextRound(roller);
+    const next = order[idx + 1];
+    this.mutate("Nächster Zug", "turn", [next.id], () => {
+      this.s.currentId = next.id;
       return this.startOfTurn(next, roller);
     });
   }
@@ -535,7 +589,7 @@ export class CombatStore {
     this.mutate(`Runde ${this.s.round + 1}`, "round", [], () => {
       const msgs: string[] = [];
       this.s.round++;
-      this.s.turnIndex = this.s.entries.length ? 0 : -1;
+      this.s.currentId = this.order()[0]?.id ?? null;
       for (const e of this.s.entries) {
         e.defensesUsed = 0;
         e.defensePenalty = 0;
@@ -554,9 +608,8 @@ export class CombatStore {
     this.mutate("Kampf beendet", "clear", [], () => {
       this.s.entries = [];
       this.s.round = 1;
-      this.s.turnIndex = -1;
+      this.s.currentId = null;
     });
   }
 }
 
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

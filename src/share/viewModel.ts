@@ -105,7 +105,7 @@ function orderOf(entries: readonly Entry[]): Entry[] {
   return [...sortInitiative(rolled.map((e) => ({ id: e.id, base: e.iniBase, roll: e.iniRoll as number }))).map((x) => byId.get(x.id) as Entry), ...rest];
 }
 
-export function buildPlayerView(state: Pick<CombatState, "round" | "turnIndex" | "entries">, opts: ShareOptions): PlayerView {
+export function buildPlayerView(state: Pick<CombatState, "round" | "currentId" | "entries">, opts: ShareOptions): PlayerView {
   const entries = state.entries as readonly Entry[];
   if (!entries.length) return { empty: true, round: state.round, rows: [] };
 
@@ -115,8 +115,9 @@ export function buildPlayerView(state: Pick<CombatState, "round" | "turnIndex" |
   for (const e of entries) if (e.kind !== "hero" && !e.hidden) enemyNo.set(e.id, ++n);
 
   const order = orderOf(entries);
-  const cur = order[state.turnIndex];
-  const nxt = state.turnIndex >= 0 ? order[state.turnIndex + 1] : order[0];
+  const idx = order.findIndex((e) => e.id === state.currentId);
+  const cur = order[idx];
+  const nxt = idx >= 0 ? order[idx + 1] : order[0];
   const rows: PlayerRow[] = [];
 
   for (const e of order) {

@@ -1,5 +1,6 @@
 // Cockpit layout mode (Kompakt / Detail / Automatisch): pure helpers + refresh of open views.
 import type { App } from "obsidian";
+import { viewApplyLayout } from "./internalApi";
 import type DsaMeisterwerkzeugPlugin from "../main";
 
 export const COCKPIT_VIEW_TYPE = "dsa-kampf-cockpit";
@@ -29,7 +30,7 @@ export const isWide = (width: number): boolean => width >= WIDE_FROM_PX;
 
 /** Tell all open cockpit views to re-read the layout setting. */
 export function refreshCockpitLayouts(app: App): void {
-  for (const leaf of app.workspace.getLeavesOfType(COCKPIT_VIEW_TYPE)) (leaf.view as unknown as { applyLayout?: () => void }).applyLayout?.();
+  for (const leaf of app.workspace.getLeavesOfType(COCKPIT_VIEW_TYPE)) viewApplyLayout(leaf.view)?.();
 }
 
 /** Persist the cockpit layout and update all open cockpit views. */
