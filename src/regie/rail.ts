@@ -25,7 +25,8 @@ const statusClass = (s: string) => (s === "läuft" ? "is-live" : s === "gespielt
 
 export function buildRail(host: HTMLElement, ctx: RegieCtx): RailApi {
   host.addClass("dsa-regie-rail");
-  host.setAttr("role", "listbox");
+  // Not a listbox: the rows contain buttons, which are not allowed inside role="option". Arrow keys still work.
+  host.setAttr("role", "group");
   host.setAttr("aria-label", "Szenen");
   const collapsed = new Set<string>();
 
@@ -45,11 +46,12 @@ export function buildRail(host: HTMLElement, ctx: RegieCtx): RailApi {
     const st = scene ? run.scenes[scene.path] : undefined;
     const status = st?.status ?? "offen";
     const sel = ctx.selected() === key;
-    const el = parent.createDiv({ cls: "dsa-regie-rail-item", attr: { "data-key": key, role: "option", "aria-selected": String(sel) } });
+    const el = parent.createDiv({ cls: "dsa-regie-rail-item", attr: { "data-key": key } });
     el.toggleClass("is-selected", sel);
     el.toggleClass("is-active", !!scene && run.activeScene === scene.path);
     el.toggleClass("is-done", status === "gespielt");
     const main = el.createEl("button", { cls: "dsa-regie-rail-main", attr: { type: "button", tabindex: sel ? "0" : "-1" } });
+    if (sel) main.setAttr("aria-current", "true");
     const badge = main.createSpan({ cls: "dsa-regie-badge" });
     if (scene) badge.setText(scene.number || "•");
     else setIcon(badge, "flag");
