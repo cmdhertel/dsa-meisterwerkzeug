@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 (2026-11-27)
+
+Erste öffentliche Version. Änderungen gegenüber der internen Vorabversion 0.1.0:
 
 - Alle Vault-Pfade sind jetzt einstellbar: neue Einstellungen für Zauber-, Liturgie- und Kampagnen-Ordner sowie die Heldenvorlage.
 - Neutrale Standardordner unter `DSA/` für Neuinstallationen. Bestehende Installationen behalten ihre bisherigen Pfade.
@@ -76,4 +78,4 @@
 
 ## 0.1.0
 
-Initial public version: rules engine, Kampf-Cockpit, Begegnungen, Bestiarium-Adapter, Heldenimport, Proben (Einzel/Gruppe/Sammel), Magie, aventurischer Kalender, Sitzungsregie, Spielerbildschirm.
+Interne Vorabversion (nicht veröffentlicht): rules engine, Kampf-Cockpit, Begegnungen, Bestiarium-Adapter, Heldenimport, Proben (Einzel/Gruppe/Sammel), Magie, aventurischer Kalender, Sitzungsregie, Spielerbildschirm.

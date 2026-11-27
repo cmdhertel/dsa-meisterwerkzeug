@@ -1,7 +1,7 @@
 {
   "id": "dsa-meisterwerkzeug",
   "name": "DSA Meisterwerkzeug",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "minAppVersion": "1.5.7",
   "description": "Game master toolkit for Das Schwarze Auge 5: rules engine, combat cockpit, spells, calendar, session director, hero import. (German UI)",
   "author": "Vademecum des Meisters",
