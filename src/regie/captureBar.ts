@@ -1,5 +1,5 @@
 // Sitzungsregie: quick-capture bar of the Mitschrift panel (kind chips + prefix shortcuts ! " > $).
-import { setIcon } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import type { RegieCtx } from "./ctx";
 import { JournalKind, KIND_ICON, KIND_LABEL, MANUAL_KINDS } from "./run";
 import { applyPrefix } from "./text";
@@ -29,7 +29,8 @@ export function buildCaptureBar(host: HTMLElement, ctx: RegieCtx): { focus(): vo
   const submit = () => {
     const s = ctx.session();
     const raw = input.value.trim();
-    if (!s || !raw) return;
+    if (!raw) return;
+    if (!s) return void new Notice("Keine Session gewählt. Wähle zuerst eine Session, um Einträge zu schreiben.");
     const r = applyPrefix(raw, kind);
     if (!r.text) return;
     ctx.regie.log(s, r.kind, r.text);
