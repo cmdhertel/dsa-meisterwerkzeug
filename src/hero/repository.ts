@@ -24,8 +24,18 @@ export class HeroRepository {
 
   async load(): Promise<void> {
     this.errors = [];
-    const mtext = await readText(this.app, this.cfg.mappingFile());
-    if (mtext === null) {
+    let mtext: string | null = null;
+    let readFailed = false;
+    try {
+      mtext = await readText(this.app, this.cfg.mappingFile());
+    } catch (e) {
+      readFailed = true;
+      this.errors.push({ path: this.cfg.mappingFile(), message: `Zuordnungsdatei konnte nicht gelesen werden: ${String(e instanceof Error ? e.message : e)}` });
+    }
+    if (readFailed) {
+      this.map = emptyMapping();
+      this.mappingValid = false;
+    } else if (mtext === null) {
       this.map = emptyMapping();
       this.mappingValid = true;
     } else {

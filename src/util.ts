@@ -1,30 +1,36 @@
+import { normalizePath } from "obsidian";
 import type { App } from "obsidian";
 
-/** Vault-relative path helpers using the adapter (works with non-markdown files and on mobile). */
+export { safeFileName } from "./fileName";
+
+/** Creates a vault folder (and its parents) through the Vault API; existing folders are left alone. */
 export async function ensureFolder(app: App, folder: string): Promise<void> {
-  const parts = folder.split("/").filter(Boolean);
+  const parts = normalizePath(folder).split("/").filter(Boolean);
   let cur = "";
   for (const p of parts) {
     cur = cur ? `${cur}/${p}` : p;
-    if (!(await app.vault.adapter.exists(cur))) await app.vault.adapter.mkdir(cur);
+    if (app.vault.getAbstractFileByPath(cur)) continue;
+    await app.vault.createFolder(cur);
   }
 }
 
+/**
+ * Reads a vault-relative text file. Returns null only if the file does not exist.
+ * Read failures (locked, permissions, sync conflicts) are thrown, so callers never treat them as "missing".
+ */
 export async function readText(app: App, path: string): Promise<string | null> {
-  try {
-    if (!(await app.vault.adapter.exists(path))) return null;
-    return await app.vault.adapter.read(path);
-  } catch {
-    return null;
-  }
+  if (!(await app.vault.adapter.exists(path))) return null;
+  return app.vault.adapter.read(path);
 }
 
+/** Writes a vault file through the Vault API (creates missing parent folders, modifies existing files). */
 export async function writeText(app: App, path: string, text: string): Promise<void> {
-  const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
+  const p = normalizePath(path);
+  const dir = dirname(p);
   if (dir) await ensureFolder(app, dir);
-  await app.vault.adapter.write(path, text);
+  const file = app.vault.getFileByPath(p);
+  if (file) await app.vault.modify(file, text);
+  else await app.vault.create(p, text);
 }
 
 export const dirname = (p: string): string => (p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : "");
-
-export { safeFileName } from "./fileName";

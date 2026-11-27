@@ -105,7 +105,12 @@ export class SpellRepository {
   }
   async remembered(name: string): Promise<RememberedSpell | null> {
     if (!this.memory) {
-      const t = await readText(this.app, this.memoryPath());
+      let t: string | null;
+      try {
+        t = await readText(this.app, this.memoryPath());
+      } catch {
+        return null; // unreadable: not cached, and remember() must not overwrite the file
+      }
       try {
         this.memory = t ? (JSON.parse(t) as Record<string, RememberedSpell>) : {};
       } catch {
@@ -117,7 +122,8 @@ export class SpellRepository {
   }
   async remember(name: string, value: RememberedSpell): Promise<void> {
     await this.remembered(name);
-    this.memory![normalizeSpellName(name)] = value;
+    if (!this.memory) return; // memory file unreadable: do not overwrite it
+    this.memory[normalizeSpellName(name)] = value;
     try {
       await writeText(this.app, this.memoryPath(), JSON.stringify(this.memory, null, 2));
     } catch {

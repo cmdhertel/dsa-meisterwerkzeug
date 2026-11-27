@@ -1,6 +1,6 @@
 import { Notice, TFile } from "obsidian";
 import type DsaMeisterwerkzeugPlugin from "../main";
-import { dirname, ensureFolder, readText, safeFileName, writeText } from "../util";
+import { ensureFolder, readText, safeFileName, writeText } from "../util";
 import { applyBlock, renderSpielwerte } from "./block";
 import { cleanHeroJson } from "./clean";
 import { diffFrontmatter, diffHeroes, frontmatterValues } from "./diff";
@@ -89,7 +89,13 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
   }
 
   // mapping (never overwrite an unparsable one)
-  const mappingText = await readText(app, s.mappingFile);
+  let mappingText: string | null;
+  try {
+    mappingText = await readText(app, s.mappingFile);
+  } catch (e) {
+    new Notice(`Zuordnungsdatei „${s.mappingFile}“ kann nicht gelesen werden. Import abgebrochen: ${String(e)}`);
+    return;
+  }
   let mapping = mappingText === null ? parseMapping("{}") : parseMapping(mappingText);
   const mappingBroken = mapping === null;
   if (!mapping) mapping = parseMapping("{}")!;
@@ -164,7 +170,14 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
   const fmCache = app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
   const dataFolder = s.heroDataFolder.replace(/\/+$/, "");
   const dataName = await resolveDataName(plugin, hero, file.basename);
-  const prevText = await readText(app, `${dataFolder}/${dataName}`);
+  let prevText: string | null;
+  try {
+    prevText = await readText(app, `${dataFolder}/${dataName}`);
+  } catch (e) {
+    // an unreadable copy must not be treated as "new" and overwritten
+    new Notice(`Bestehende Helden-Daten konnten nicht gelesen werden. Import abgebrochen: ${String(e)}`);
+    return;
+  }
   let prevHero: Hero | null = null;
   if (prevText) {
     try {
@@ -240,8 +253,7 @@ async function finish(
   // 4. mapping stubs (only if the file was valid or absent)
   if (mappingBroken) new Notice("Zuordnungsdatei ist ungültiges JSON und wurde nicht verändert.");
   else if (stubbed.added.length) {
-    await ensureFolder(app, dirname(s.mappingFile));
-    await app.vault.adapter.write(s.mappingFile, serializeMapping(stubbed.mapping));
+    await writeText(app, s.mappingFile, serializeMapping(stubbed.mapping));
   }
   await plugin.heroes.load();
   new Notice(`${hero.name} importiert (${file.path}).`);
