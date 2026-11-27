@@ -1,4 +1,4 @@
-// Pure parser for the spell / liturgy rule notes (20 - Regeln/Zauber, 20 - Regeln/Liturgien). No obsidian imports.
+// Pure parser for the spell / liturgy rule notes (spell / liturgy folders from the settings). No obsidian imports.
 import type { AttrKey } from "../engine/types";
 import { ATTR_KEYS } from "../engine/types";
 

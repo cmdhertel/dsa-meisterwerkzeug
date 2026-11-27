@@ -5,7 +5,7 @@ import YAML from "yaml";
 import { parseCreature } from "../src/bestiary/adapter";
 import { extractStatblockYaml, hasCombatStats, normalizeStatblock } from "../src/bestiary/statblock";
 
-const vault = path.resolve(__dirname, "../../..");
+const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(__dirname, "../../..");
 const npcDir = path.join(vault, "Campaigns/Die Nebelfurt/03. Non Player Characters");
 
 describe("NSC statblock", () => {

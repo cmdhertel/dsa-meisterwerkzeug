@@ -3,7 +3,7 @@ import path from "path";
 import { describe, expect, it } from "vitest";
 import { digestNote, gmSecret, parseKurzprofil, secretTasks } from "../src/regie/digest";
 
-const vault = path.resolve(__dirname, "../../..");
+const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(__dirname, "../../..");
 const camp = path.join(vault, "Campaigns");
 const have = fs.existsSync(camp);
 

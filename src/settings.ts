@@ -1,48 +1,11 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import type { CombatState } from "./combat/store";
 import type DsaMeisterwerkzeugPlugin from "./main";
-import type { SavedMap } from "./groupprobe/state";
-import { SHARE_DEFAULTS, ShareSettings } from "./share/viewModel";
 import { addShareSettings } from "./share/settings";
-import { CockpitLayout, LAYOUT_LABEL, LAYOUT_ORDER, normalizeLayout, refreshCockpitLayouts } from "./cockpit/layout";
+import { LAYOUT_LABEL, LAYOUT_ORDER, normalizeLayout, refreshCockpitLayouts } from "./cockpit/layout";
+import { DEFAULT_SETTINGS } from "./settingsData";
 
-export interface DsaSettings extends ShareSettings {
-  bestiaryFolder: string;
-  heroesFolder: string;
-  /** folder for cleaned hero JSON copies (the plugin's data source for rolls) */
-  heroDataFolder: string;
-  /** user-editable Heldenschmiede key -> name mapping */
-  mappingFile: string;
-  /** unfinished Sammelproben (groupprobe/state.ts) */
-  groupprobe: SavedMap;
-  /** Kampf-Cockpit layout: auto = by view width */
-  cockpitLayout: CockpitLayout;
-  /** Trefferzonen (Fokusregel): zone roll after an undefended hit, targeted attacks, zone armour, wound effects */
-  hitZones: boolean;
-  /** Sitzungsregie: write probes, fights, rests and date changes into the Mitschrift while a session runs */
-  regieAutoLog: boolean;
-  /** Sitzungsregie: how many earlier sessions of the campaign contribute open secrets (0 = none) */
-  regieEarlierSessions: number;
-}
-
-export const DEFAULT_SETTINGS: DsaSettings = {
-  bestiaryFolder: "30 - Bestiarium",
-  heroesFolder: "Assets/08. Player Characters",
-  heroDataFolder: "Assets/08. Player Characters/_Daten",
-  mappingFile: "Assets/08. Player Characters/_Daten/heldenschmiede-keys.json",
-  groupprobe: {},
-  cockpitLayout: "auto",
-  hitZones: false,
-  regieAutoLog: true,
-  regieEarlierSessions: 5,
-  ...SHARE_DEFAULTS,
-};
-
-/** Everything stored via loadData()/saveData(). */
-export interface PluginData {
-  settings: DsaSettings;
-  combat: CombatState | null;
-}
+export { DEFAULT_SETTINGS, folderPath, resolveSettings } from "./settingsData";
+export type { DsaSettings, PluginData } from "./settingsData";
 
 export class DsaSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: DsaMeisterwerkzeugPlugin) {
@@ -54,13 +17,14 @@ export class DsaSettingTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h2", { text: "DSA Meisterwerkzeug" });
 
-    const field = (name: string, desc: string, key: "bestiaryFolder" | "heroesFolder" | "heroDataFolder" | "mappingFile") =>
+    type PathKey = "bestiaryFolder" | "heroesFolder" | "heroDataFolder" | "mappingFile" | "heroTemplate" | "spellFolder" | "liturgyFolder" | "campaignsFolder";
+    const field = (name: string, desc: string, key: PathKey) =>
       new Setting(containerEl)
         .setName(name)
         .setDesc(desc)
         .addText((t) =>
           t
-            .setPlaceholder(DEFAULT_SETTINGS[key])
+            .setPlaceholder(DEFAULT_SETTINGS[key] || "z. B. Vorlagen/Held.md")
             .setValue(this.plugin.settings[key])
             .onChange(async (v) => {
               this.plugin.settings[key] = v.trim() || DEFAULT_SETTINGS[key];
@@ -68,11 +32,24 @@ export class DsaSettingTab extends PluginSettingTab {
             }),
         );
 
+    containerEl.createEl("p", {
+      text: "Pfade sind relativ zum Vault-Ordner. Welche Frontmatter-Felder das Plugin liest, steht in der Anleitung (docs/VAULT.md im Repository).",
+      cls: "setting-item-description",
+    });
+
+    containerEl.createEl("h3", { text: "Ordner" });
     field("Bestiarium-Ordner", "Ordner mit den Kreaturen-Notizen (Frontmatter-Wertekasten).", "bestiaryFolder");
+    field("Kampagnen-Ordner", "Ein Unterordner pro Kampagne. Der Kalender folgt der Kampagne der geöffneten Notiz.", "campaignsFolder");
+    field("Zauber-Ordner", "Regelnotizen der Zauber (eine Notiz pro Zauber).", "spellFolder");
+    field("Liturgie-Ordner", "Regelnotizen der Liturgien (eine Notiz pro Liturgie).", "liturgyFolder");
+
+    containerEl.createEl("h3", { text: "Helden" });
     field("Helden-Ordner", "Hier werden Heldennotizen gesucht und neue angelegt.", "heroesFolder");
     field("Helden-Daten-Ordner", "Bereinigte .dsahero.json-Kopien (Datenquelle für Würfe).", "heroDataFolder");
     field("Schlüssel-Zuordnung", "JSON-Datei, in der Heldenschmiede-Schlüssel (Zauber, Waffen ...) Namen zugeordnet werden.", "mappingFile");
+    field("Vorlage für neue Helden", "Optionale Notiz als Vorlage (Platzhalter <% k.titel %> und <% k.kampagne %>). Leer = eingebaute Vorlage.", "heroTemplate");
 
+    containerEl.createEl("h3", { text: "Kampf" });
     new Setting(containerEl)
       .setName("Kampf-Cockpit: Ansicht")
       .setDesc("Kompakt (Seitenleiste), Detail (Vollbild) oder automatisch nach Breite des Cockpits.")

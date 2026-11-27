@@ -3,6 +3,7 @@ import type DsaMeisterwerkzeugPlugin from "../main";
 import { addDays, formatDate } from "./engine";
 import { CALENDAR_VIEW_TYPE, CalendarView, askForDate } from "./view";
 import { CalendarState, setCalendar } from "./state";
+import { campaignOfFile } from "./campaigns";
 
 export async function openCalendar(plugin: DsaMeisterwerkzeugPlugin): Promise<void> {
   const { workspace } = plugin.app;
@@ -41,8 +42,8 @@ export function registerCalendar(plugin: DsaMeisterwerkzeugPlugin): void {
   // follow the campaign of the active note
   plugin.registerEvent(
     plugin.app.workspace.on("file-open", (file: TFile | null) => {
-      const m = file && /^Campaigns\/([^/]+)\//.exec(file.path);
-      if (m && state.active !== m[1] && plugin.app.vault.getAbstractFileByPath(`Campaigns/${m[1]}`)) state.setActive(m[1]);
+      const c = file && campaignOfFile(plugin, file);
+      if (c && state.active !== c) state.setActive(c);
     }),
   );
 

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import YAML from "yaml";
 import { parseCreature, parseWeapon } from "../src/bestiary/adapter";
 
-const vault = path.resolve(__dirname, "../../..");
+const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(__dirname, "../../..");
 const dir = path.join(vault, "30 - Bestiarium");
 const have = fs.existsSync(dir);
 

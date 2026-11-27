@@ -39,13 +39,9 @@ Installiere [BRAT](https://github.com/TfTHacker/obsidian42-brat) und füge `cmdh
 
 ## Einrichtung
 
-Unter *Einstellungen → DSA Meisterwerkzeug* legst du die Ordner in deinem Vault fest:
+Das Plugin braucht keine bestimmte Vault-Struktur. Unter *Einstellungen → DSA Meisterwerkzeug* legst du fest, wo Bestiarium, Kampagnen, Zauber, Liturgien und Helden liegen. Notizen erkennt es am Frontmatter-Feld `typ` (`kampagne`, `session`, `szene`, `nsc`, `sc` …).
 
-- **Bestiarium-Ordner** – Kreaturen-Notizen
-- **Helden-Ordner / Daten-Ordner** – Heldennotizen und bereinigte JSON-Kopien
-- **Zuordnungsdatei** – Heldenschmiede-Schlüssel → Namen (anpassbar)
-
-Die Standardwerte stammen aus dem Vault des Autors; passe sie an deine Struktur an.
+**Welche Felder und Formate das Plugin liest, steht mit Beispielen in [docs/VAULT.md](docs/VAULT.md).**
 
 ## Entwicklung
 

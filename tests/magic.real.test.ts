@@ -3,7 +3,7 @@ import path from "path";
 import { describe, expect, it } from "vitest";
 import { isFullySpell, parseSpellNote } from "../src/magic/spells";
 
-const vault = path.resolve(__dirname, "../../..");
+const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(__dirname, "../../..");
 const dirs: [string, "zauber" | "liturgie"][] = [
   [path.join(vault, "20 - Regeln/Zauber"), "zauber"],
   [path.join(vault, "20 - Regeln/Liturgien"), "liturgie"],

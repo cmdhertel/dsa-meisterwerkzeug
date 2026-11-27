@@ -3,12 +3,11 @@ import type { App, TFile } from "obsidian";
 import type { AttrKey } from "../engine/types";
 import { ATTR_KEYS } from "../engine/types";
 import type DsaMeisterwerkzeugPlugin from "../main";
+import { folderPath } from "../settingsData";
 import { readText, writeText } from "../util";
 import { Caster, KEY_ASP_CURRENT, KEY_KAP_CURRENT, casterFromCreature, casterFromHero, energyNumber } from "./casters";
 import { SpellDef, SpellKind, findSpell, normalizeSpellName, parseSpellNote } from "./spells";
 
-export const SPELL_FOLDER = "20 - Regeln/Zauber";
-export const LITURGY_FOLDER = "20 - Regeln/Liturgien";
 const MEMORY_FILE = "zauber-eigenschaften.json";
 
 export interface RememberedSpell {
@@ -28,9 +27,11 @@ export class SpellRepository {
 
   private files(): { file: TFile; kind: SpellKind }[] {
     const out: { file: TFile; kind: SpellKind }[] = [];
+    const spells = folderPath(this.plugin.settings.spellFolder) + "/";
+    const liturgies = folderPath(this.plugin.settings.liturgyFolder) + "/";
     for (const f of this.app.vault.getMarkdownFiles()) {
-      if (f.path.startsWith(SPELL_FOLDER + "/")) out.push({ file: f, kind: "zauber" });
-      else if (f.path.startsWith(LITURGY_FOLDER + "/")) out.push({ file: f, kind: "liturgie" });
+      if (f.path.startsWith(spells)) out.push({ file: f, kind: "zauber" });
+      else if (f.path.startsWith(liturgies)) out.push({ file: f, kind: "liturgie" });
     }
     return out;
   }

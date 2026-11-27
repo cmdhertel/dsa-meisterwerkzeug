@@ -10,7 +10,7 @@ import { TALENT_BY_KEY } from "../src/hero/keys";
 import { addStubs, collectKeys, emptyMapping, parseMapping, serializeMapping } from "../src/hero/mapping";
 import { heroToCombatant, parseHero, talentValue, validateHeroJson, HeroJson } from "../src/hero/model";
 
-const file = path.resolve(__dirname, "../../../thorwin.dsahero.json");
+const file = process.env.DSA_HERO_JSON ? path.resolve(process.env.DSA_HERO_JSON) : path.resolve(__dirname, "../../../thorwin.dsahero.json");
 const have = fs.existsSync(file);
 const load = () => JSON.parse(fs.readFileSync(file, "utf8")) as HeroJson;
 

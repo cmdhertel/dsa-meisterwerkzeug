@@ -43,6 +43,26 @@ function renderTemplate(tpl: string, kampagne: string, titel: string): string {
     .replace(/<%\s*k\.titel\s*%>/g, titel);
 }
 
+/** Built-in note template for new heroes (used when no template note is configured). */
+export const BUILTIN_HERO_TEMPLATE = `---
+typ: sc
+kampagne: <% k.kampagne %>
+spieler:
+---
+
+# <% k.titel %>
+`;
+
+/** Configured template note, or the built-in one (with a notice if the configured note is missing). */
+async function heroTemplate(plugin: DsaMeisterwerkzeugPlugin): Promise<string> {
+  const path = plugin.settings.heroTemplate.trim();
+  if (!path) return BUILTIN_HERO_TEMPLATE;
+  const file = plugin.app.vault.getFileByPath(path) ?? plugin.app.vault.getFileByPath(path + ".md");
+  if (file) return plugin.app.vault.read(file);
+  new Notice(`Vorlage „${path}“ nicht gefunden, eingebaute Vorlage wird verwendet.`);
+  return BUILTIN_HERO_TEMPLATE;
+}
+
 export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void> {
   const app = plugin.app;
   const s = plugin.settings;
@@ -104,20 +124,16 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
   if (!file) {
     isNew = true;
     const kamps = app.vault.getMarkdownFiles().filter((f) => app.metadataCache.getFileCache(f)?.frontmatter?.typ === "kampagne");
-    if (!kamps.length) {
-      new Notice("Keine Kampagnen-Notiz (typ: kampagne) gefunden.");
-      return;
+    // campaign is optional: without any `typ: kampagne` note the hero is created without one
+    let kampagne = '""';
+    if (kamps.length) {
+      const kamp = await pick(app, kamps, (f) => f.basename, "Kampagne wählen ...");
+      if (!kamp) return;
+      kampagne = `"[[${kamp.basename}]]"`;
     }
-    const kamp = await pick(app, kamps, (f) => f.basename, "Kampagne wählen ...");
-    if (!kamp) return;
     const spieler = await promptText(app, "Spieler", "Name des Spielers / der Spielerin", "");
     if (spieler === null) return;
-    const tplFile = app.vault.getFileByPath("Templates/SC.md");
-    if (!tplFile) {
-      new Notice("Templates/SC.md nicht gefunden.");
-      return;
-    }
-    newContent = renderTemplate(await app.vault.read(tplFile), `"[[${kamp.basename}]]"`, hero.name);
+    newContent = renderTemplate(await heroTemplate(plugin), kampagne, hero.name);
     // spieler is written below via processFrontMatter after creation
     const folder = s.heroesFolder.replace(/\/+$/, "");
     await ensureFolder(app, folder);

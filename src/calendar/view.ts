@@ -1,5 +1,6 @@
 // Kalender sidebar view.
-import { ItemView, TFolder, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf } from "obsidian";
+import { listCampaigns } from "./campaigns";
 import { defaultRoller } from "../engine/dice";
 import type DsaMeisterwerkzeugPlugin from "../main";
 import {
@@ -79,9 +80,7 @@ export class CalendarView extends ItemView {
   private allEvents: CalEvent[] = [];
 
   private campaigns(): string[] {
-    const root = this.app.vault.getAbstractFileByPath("Campaigns");
-    if (!(root instanceof TFolder)) return [];
-    return root.children.filter((c): c is TFolder => c instanceof TFolder).map((c) => c.name).sort((a, b) => a.localeCompare(b, "de"));
+    return listCampaigns(this.plugin);
   }
 
   private render() {

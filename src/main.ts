@@ -12,7 +12,7 @@ import { registerMagic } from "./magic";
 import { registerProbe } from "./probe";
 import { registerRegie } from "./regie";
 import { registerShare } from "./share";
-import { DEFAULT_SETTINGS, DsaSettingTab, DsaSettings, PluginData } from "./settings";
+import { DEFAULT_SETTINGS, DsaSettingTab, DsaSettings, PluginData, resolveSettings } from "./settings";
 
 export default class DsaMeisterwerkzeugPlugin extends Plugin {
   settings: DsaSettings = { ...DEFAULT_SETTINGS, groupprobe: {} };
@@ -24,7 +24,7 @@ export default class DsaMeisterwerkzeugPlugin extends Plugin {
 
   async onload() {
     const data = ((await this.loadData()) ?? {}) as Partial<PluginData>;
-    this.settings = { ...DEFAULT_SETTINGS, ...(data.settings ?? {}) };
+    this.settings = resolveSettings(data.settings);
     if (!this.settings.groupprobe || typeof this.settings.groupprobe !== "object") this.settings.groupprobe = {};
 
     this.combat = new CombatStore(() => this.persist());
