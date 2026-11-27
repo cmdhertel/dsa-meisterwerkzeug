@@ -14,6 +14,10 @@ import { ZONES, ZoneId, rollWeather } from "./weather";
 import { toDayNumber } from "./engine";
 
 export const CALENDAR_VIEW_TYPE = "dsa-calendar-view";
+/** re-render delay after a state change (user action) */
+const RENDER_DELAY_MS = 100;
+/** re-render delay after a note's metadata changed: bursts of saves collapse into one rescan */
+const METADATA_DELAY_MS = 400;
 
 export async function askForDate(plugin: DsaMeisterwerkzeugPlugin): Promise<AvDate | null> {
   const cur = calendarOf(plugin).getDate();
@@ -31,6 +35,9 @@ export class CalendarView extends ItemView {
   private selectedDay: number | null = null;
   private events = new Map<number, CalEvent[]>();
   private timer: number | null = null;
+  private rescanPending = false;
+  /** keyboard focus was on a day cell before the last render; put it back on the same day */
+  private restoreFocus = false;
 
   constructor(leaf: WorkspaceLeaf, private plugin: DsaMeisterwerkzeugPlugin) {
     super(leaf);
@@ -57,12 +64,16 @@ export class CalendarView extends ItemView {
   }
 
   private schedule(rescan = false) {
+    this.rescanPending ||= rescan;
     if (this.timer !== null) window.clearTimeout(this.timer);
     this.timer = window.setTimeout(() => {
       this.timer = null;
-      if (rescan) this.scanEvents();
+      if (this.rescanPending) {
+        this.rescanPending = false;
+        this.scanEvents();
+      }
       this.render();
-    }, 100);
+    }, rescan ? METADATA_DELAY_MS : RENDER_DELAY_MS);
   }
 
   private scanEvents() {
@@ -87,6 +98,8 @@ export class CalendarView extends ItemView {
     const cal = calendarOf(this.plugin);
     const el = this.contentEl;
     el.empty();
+    const focusDay = this.restoreFocus;
+    this.restoreFocus = false;
     const today = cal.getDate();
     if (!this.shown) this.shown = { year: today.year, month: today.month };
 
@@ -146,9 +159,9 @@ export class CalendarView extends ItemView {
       this.selectedDay = null;
       this.render();
     };
-    nav.createEl("button", { text: "‹" }).onclick = () => step(-1);
+    nav.createEl("button", { text: "‹", attr: { "aria-label": "Vorheriger Monat" } }).onclick = () => step(-1);
     nav.createSpan({ text: `${monthName(s.month)} ${s.year} BF`, cls: "dsa-cal-nav-title" });
-    nav.createEl("button", { text: "›" }).onclick = () => step(1);
+    nav.createEl("button", { text: "›", attr: { "aria-label": "Nächster Monat" } }).onclick = () => step(1);
     nav.createEl("button", { text: "Heute" }).onclick = () => {
       this.shown = { year: today.year, month: today.month };
       this.render();
@@ -162,17 +175,23 @@ export class CalendarView extends ItemView {
     for (let day = 1; day <= n; day++) {
       const d: AvDate = { year: s.year, month: s.month, day };
       const dn = toDayNumber(d);
-      const cell = grid.createDiv({ cls: "dsa-cal-cell", text: String(day) });
-      if (sameDate(d, today)) cell.addClass("is-today");
+      const cell = grid.createEl("button", { cls: "dsa-cal-cell", text: String(day), attr: { type: "button", "aria-label": formatDate(d) } });
+      if (sameDate(d, today)) {
+        cell.addClass("is-today");
+        cell.setAttr("aria-current", "date");
+      }
       if (this.selectedDay === dn) cell.addClass("is-selected");
+      cell.setAttr("aria-pressed", String(this.selectedDay === dn));
       if (holyDay(d)) cell.addClass("is-holy");
       const evs = this.events.get(dn);
       if (evs?.length) {
         cell.addClass("has-events");
         cell.title = evs.map((e) => e.title).join("\n");
       }
+      if (focusDay && this.selectedDay === dn) cell.focus();
       cell.onclick = () => {
         this.selectedDay = dn;
+        this.restoreFocus = true;
         this.render();
       };
       cell.oncontextmenu = (ev) => {
@@ -180,7 +199,7 @@ export class CalendarView extends ItemView {
         cal.setDate(d);
       };
     }
-    el.createDiv({ cls: "dsa-cal-muted dsa-cal-tip", text: "Rechtsklick auf einen Tag setzt das aktuelle Datum." });
+    el.createDiv({ cls: "dsa-cal-muted dsa-cal-tip", text: "Tag antippen für Notizen. Rechtsklick setzt einen Tag direkt als aktuelles Datum." });
 
     // selected day
     if (this.selectedDay !== null) {
@@ -189,6 +208,8 @@ export class CalendarView extends ItemView {
       box.createEl("h4", { text: `${formatDate(d)} (${weekdayName(d)})` });
       const h = holyDay(d);
       if (h) box.createDiv({ cls: "dsa-cal-holy", text: h });
+      // touch-friendly alternative to the right-click on a day
+      box.createEl("button", { text: "Als heutiges Datum setzen" }).onclick = () => cal.setDate(d);
       const evs = this.events.get(this.selectedDay) ?? [];
       if (!evs.length) box.createDiv({ cls: "dsa-cal-muted", text: "Keine Notizen an diesem Tag." });
       for (const e of evs) {
