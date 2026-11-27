@@ -51,7 +51,6 @@ export class ProbeView {
   private runs: ProbeRun[] = [];
   private sel: Selection | null = null;
   private resultEl: HTMLElement;
-  private btn: HTMLButtonElement;
   private children: Component[] = [];
 
   constructor(
@@ -65,15 +64,13 @@ export class ProbeView {
     host.addClass("dsa-probe");
     if (opts.withButton) {
       const mod = formatModifier(spec.modifier);
-      this.btn = host.createEl("button", { cls: "dsa-probe-btn", text: `🎲 ${spec.talent.name}${mod ? " " + mod : ""}` });
-      this.btn.title = `${spec.talent.attrs.join(" / ")}${spec.modifier ? `  (Modifikator ${formatModifier(spec.modifier)})` : ""}`;
-      this.btn.addEventListener("click", (ev) => {
+      const btn = host.createEl("button", { cls: "dsa-probe-btn", text: `🎲 ${spec.talent.name}${mod ? " " + mod : ""}` });
+      btn.title = `${spec.talent.attrs.join(" / ")}${spec.modifier ? `  (Modifikator ${formatModifier(spec.modifier)})` : ""}`;
+      btn.addEventListener("click", (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
         this.openMenu(ev);
       });
-    } else {
-      this.btn = document.createElement("button");
     }
     this.resultEl = host.createSpan({ cls: "dsa-probe-result-host" });
   }
