@@ -1,0 +1,32 @@
+{
+  "_comment": "Talents that are NOT in 20 - Regeln/Talentfertigkeiten.md (the vault note lists only 4 groups and only 4 Wissenstalente). Taken from the DSA5 core rulebook, NOT verified against the vault.",
+  "Wissen": [
+    { "name": "Kriegskunst", "attrs": ["MU", "KL", "IN"] },
+    { "name": "Magiekunde", "attrs": ["KL", "KL", "IN"] },
+    { "name": "Mechanik", "attrs": ["KL", "KL", "FF"] },
+    { "name": "Rechnen", "attrs": ["KL", "KL", "IN"] },
+    { "name": "Rechtskunde", "attrs": ["KL", "KL", "IN"] },
+    { "name": "Sagen & Legenden", "attrs": ["KL", "KL", "IN"] },
+    { "name": "Sphärenkunde", "attrs": ["KL", "KL", "IN"] },
+    { "name": "Sternkunde", "attrs": ["KL", "KL", "IN"] }
+  ],
+  "Handwerk": [
+    { "name": "Alchimie", "attrs": ["MU", "KL", "FF"] },
+    { "name": "Boote & Schiffe", "attrs": ["FF", "GE", "KK"] },
+    { "name": "Fahrzeuge", "attrs": ["CH", "FF", "KO"] },
+    { "name": "Handel", "attrs": ["KL", "IN", "CH"] },
+    { "name": "Heilkunde Gift", "attrs": ["MU", "KL", "IN"] },
+    { "name": "Heilkunde Krankheiten", "attrs": ["MU", "IN", "KO"] },
+    { "name": "Heilkunde Seele", "attrs": ["IN", "CH", "KO"] },
+    { "name": "Heilkunde Wunden", "attrs": ["KL", "FF", "FF"] },
+    { "name": "Holzbearbeitung", "attrs": ["FF", "GE", "KK"] },
+    { "name": "Lebensmittelbearbeitung", "attrs": ["IN", "FF", "FF"] },
+    { "name": "Lederbearbeitung", "attrs": ["FF", "GE", "KO"] },
+    { "name": "Malen & Zeichnen", "attrs": ["IN", "FF", "FF"] },
+    { "name": "Metallbearbeitung", "attrs": ["FF", "KO", "KK"] },
+    { "name": "Musizieren", "attrs": ["CH", "FF", "KO"] },
+    { "name": "Schlösserknacken", "attrs": ["IN", "FF", "FF"] },
+    { "name": "Steinbearbeitung", "attrs": ["FF", "FF", "KK"] },
+    { "name": "Stoffbearbeitung", "attrs": ["KL", "FF", "FF"] }
+  ]
+}
