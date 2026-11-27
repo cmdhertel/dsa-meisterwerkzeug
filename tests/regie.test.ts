@@ -256,6 +256,19 @@ describe("run reducers", () => {
     r = setSceneStatus(r, "zz", "gespielt", 1);
     expect(r.scenes.zz.status).toBe("gespielt");
   });
+  it("setSceneStatus läuft stops the clock of the previously active scene", () => {
+    const r1 = activateScene(newRun("S"), "a", "A", 0);
+    const r2 = setSceneStatus(r1, "b", "läuft", 60000);
+    expect(r2.activeScene).toBe("b");
+    expect(r2.scenes.a).toEqual({ status: "gespielt", ms: 60000, since: null });
+    expect(r2.scenes.b).toEqual({ status: "läuft", ms: 0, since: 60000 });
+    expect(sceneElapsed(r2, "a", 90000)).toBe(60000);
+    expect(sceneElapsed(r2, "b", 90000)).toBe(30000);
+    // Setting the already active scene to "läuft" again keeps its accumulated time and restarts only its own clock.
+    const r3 = setSceneStatus(r2, "b", "läuft", 90000);
+    expect(r3.scenes.b).toEqual({ status: "läuft", ms: 30000, since: 90000 });
+    expect(r3.scenes.a.status).toBe("gespielt");
+  });
   it("entries", () => {
     const r0 = newRun("S");
     expect(addEntry(r0, { kind: "notiz", text: "  " }, 1).journal).toHaveLength(0);
