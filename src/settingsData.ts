@@ -71,6 +71,15 @@ export function resolveSettings(saved: Partial<DsaSettings> | undefined): DsaSet
 /** Folder path without trailing slashes. */
 export const folderPath = (p: string): string => p.trim().replace(/\/+$/, "");
 
+/**
+ * Cleans a vault path typed into the settings: backslashes become slashes, repeated slashes collapse,
+ * leading and trailing slashes are dropped. Blank input yields the fallback (e.g. the default path).
+ */
+export function normalizeSettingPath(raw: string, fallback: string): string {
+  const cleaned = raw.trim().replace(/\\/g, "/").replace(/\/{2,}/g, "/").replace(/^\/+|\/+$/g, "").trim();
+  return cleaned || fallback;
+}
+
 /** Everything stored via loadData()/saveData(). */
 export interface PluginData {
   settings: DsaSettings;

@@ -1,5 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_SETTINGS, folderPath, resolveSettings } from "../src/settingsData";
+import { DEFAULT_SETTINGS, folderPath, normalizeSettingPath, resolveSettings } from "../src/settingsData";
+
+describe("normalizeSettingPath", () => {
+  it("drops leading and trailing slashes", () => {
+    expect(normalizeSettingPath("Bestiarium/", "X")).toBe("Bestiarium");
+    expect(normalizeSettingPath("/DSA/Helden//", "X")).toBe("DSA/Helden");
+  });
+
+  it("unifies backslashes and collapses repeated slashes", () => {
+    expect(normalizeSettingPath("DSA\\Helden\\\\_Daten", "X")).toBe("DSA/Helden/_Daten");
+    expect(normalizeSettingPath("DSA//Regeln///Zauber", "X")).toBe("DSA/Regeln/Zauber");
+  });
+
+  it("trims whitespace around the path", () => {
+    expect(normalizeSettingPath("  DSA/Kampagnen  ", "X")).toBe("DSA/Kampagnen");
+  });
+
+  it("keeps spaces and dots inside names", () => {
+    expect(normalizeSettingPath("30 - Bestiarium/Sub.Ordner", "X")).toBe("30 - Bestiarium/Sub.Ordner");
+  });
+
+  it("returns the fallback for blank or slash-only input", () => {
+    expect(normalizeSettingPath("", "DSA/Bestiarium")).toBe("DSA/Bestiarium");
+    expect(normalizeSettingPath("   ", "DSA/Bestiarium")).toBe("DSA/Bestiarium");
+    expect(normalizeSettingPath("/", "DSA/Bestiarium")).toBe("DSA/Bestiarium");
+    expect(normalizeSettingPath("", "")).toBe("");
+  });
+});
 
 describe("resolveSettings", () => {
   it("fresh install gets the neutral defaults", () => {

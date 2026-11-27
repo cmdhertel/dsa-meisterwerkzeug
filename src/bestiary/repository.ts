@@ -58,6 +58,12 @@ export class BestiaryRepository {
     else this.npcs.delete(file.path);
   }
 
+  /** Drops the NSC cache and rescans the vault, e.g. after the bestiary folder setting changed. */
+  async reload(): Promise<void> {
+    this.npcs.clear();
+    await this.loadNpcs();
+  }
+
   async loadNpcs(): Promise<void> {
     for (const f of this.app.vault.getMarkdownFiles()) {
       if (!this.isNpcCandidate(f)) continue;
