@@ -27,7 +27,4 @@ export async function writeText(app: App, path: string, text: string): Promise<v
 
 export const dirname = (p: string): string => (p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : "");
 
-/** Strip characters that are invalid in file names. */
-export function safeFileName(name: string): string {
-  return name.replace(/[\\/:*?"<>|#^[\]]/g, " ").replace(/\s+/g, " ").trim() || "Held";
-}
+export { safeFileName } from "./fileName";
