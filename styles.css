@@ -538,7 +538,7 @@
 .dsa-regie-bar { display: grid; grid-template-columns: 30px minmax(30px, 1fr) 6ch; align-items: center; gap: var(--regie-sp-2); font-size: var(--font-ui-smaller); }
 .dsa-regie-bar-label { color: var(--text-muted); }
 .dsa-regie-bar-track { height: 6px; border-radius: 3px; background: var(--regie-line); overflow: hidden; }
-.dsa-regie-bar-fill { height: 100%; background: var(--regie-accent); }
+.dsa-regie-bar-fill { height: 100%; width: var(--dsa-w, 0%); background: var(--regie-accent); }
 .dsa-regie-bar.is-lep .dsa-regie-bar-fill { background: var(--text-error); }
 .dsa-regie-bar.is-asp .dsa-regie-bar-fill { background: var(--text-accent); }
 .dsa-regie-bar.is-kap .dsa-regie-bar-fill { background: var(--text-warning); }

@@ -20,7 +20,7 @@ function bar(parent: HTMLElement, label: string, pool: Pool, cls: string): void 
     attr: { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(pool.max), "aria-valuenow": String(pool.cur), "aria-label": `${label} ${pool.cur} von ${pool.max}` },
   });
   const fill = track.createDiv({ cls: "dsa-regie-bar-fill" });
-  fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+  fill.setCssProps({ "--dsa-w": `${Math.max(0, Math.min(100, pct))}%` });
   if (pct <= 33) row.addClass("is-low");
   row.createSpan({ cls: "dsa-regie-bar-value", text: `${pool.cur}/${pool.max}` });
 }
