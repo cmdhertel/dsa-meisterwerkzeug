@@ -107,6 +107,7 @@ export function startAdHoc(plugin: DsaMeisterwerkzeugPlugin, kind: GroupKind): v
       doneText: [],
       failText: [],
       partialText: [],
+      warnings: [],
     };
     new GroupProbeModal(plugin, spec, plugin.app.workspace.getActiveFile()?.path ?? "", null).open();
   }).open();

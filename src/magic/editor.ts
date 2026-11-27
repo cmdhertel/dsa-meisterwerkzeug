@@ -4,6 +4,7 @@ import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetTy
 import { editorLivePreviewField } from "obsidian";
 import type { Text } from "@codemirror/state";
 import type DsaMeisterwerkzeugPlugin from "../main";
+import { inlineCodeSpans } from "../probe/parse";
 import { isMagicCode } from "./parse";
 import { mountMagic } from "./view";
 
@@ -21,8 +22,6 @@ class MagicWidget extends WidgetType {
     return true;
   }
 }
-
-const INLINE_CODE = /(?<!`)`([^`\n]+)`(?!`)/g;
 
 function insideFence(doc: Text, lineNo: number): boolean {
   let open: string | null = null;
@@ -59,17 +58,15 @@ export function magicEditorExtension(plugin: DsaMeisterwerkzeugPlugin) {
             if (line.number <= lastLine) continue;
             lastLine = line.number;
             if (!/`\s*(zauber|liturgie)\s*:/i.test(line.text)) continue;
-            INLINE_CODE.lastIndex = 0;
-            let m: RegExpExecArray | null;
             let fenced: boolean | null = null;
-            while ((m = INLINE_CODE.exec(line.text))) {
-              if (!isMagicCode(m[1])) continue;
+            for (const s of inlineCodeSpans(line.text)) {
+              if (!isMagicCode(s.code)) continue;
               fenced ??= insideFence(doc, line.number);
               if (fenced) break;
-              const a = line.from + m.index;
-              const z = a + m[0].length;
+              const a = line.from + s.from;
+              const z = line.from + s.to;
               if (sel.ranges.some((r) => r.from <= z && r.to >= a)) continue;
-              b.add(a, z, Decoration.replace({ widget: new MagicWidget(plugin, m[1]) }));
+              b.add(a, z, Decoration.replace({ widget: new MagicWidget(plugin, s.code) }));
             }
           }
         }

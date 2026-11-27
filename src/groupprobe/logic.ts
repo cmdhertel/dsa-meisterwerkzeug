@@ -217,14 +217,19 @@ export function sammelLine(talent: string, modifier: number, kind: GroupKind, st
 }
 
 /**
- * Insert `line` directly below the first line containing `` `raw` ``. If the following line already starts
+ * Insert `line` directly below the line containing `` `raw` ``. `atLine` (0-based) is the line the probe sits on, when
+ * known: if that line really contains the code it is used, so a probe that appears more than once gets its own result.
+ * Otherwise the first line containing the code is used. If the following line already starts
  * with the same prefix (text up to the first colon), it is replaced. Returns null if the code is not found.
  */
-export function insertBelow(text: string, raw: string, line: string): string | null {
+export function insertBelow(text: string, raw: string, line: string, atLine?: number | null): string | null {
   const lines = text.split("\n");
   const needle = "`" + raw + "`";
-  let idx = lines.findIndex((l) => l.includes(needle));
-  if (idx < 0) idx = lines.findIndex((l) => l.includes("`" + raw.trim() + "`"));
+  const trimmedNeedle = "`" + raw.trim() + "`";
+  let idx = -1;
+  if (atLine != null && atLine >= 0 && atLine < lines.length && lines[atLine].includes(needle)) idx = atLine;
+  if (idx < 0) idx = lines.findIndex((l) => l.includes(needle));
+  if (idx < 0) idx = lines.findIndex((l) => l.includes(trimmedNeedle));
   if (idx < 0) return null;
   const key = (l: string) => l.split(":")[0].replace(/, Versuch.*$/, "");
   const next = lines[idx + 1];
@@ -233,7 +238,30 @@ export function insertBelow(text: string, raw: string, line: string): string | n
   return lines.join("\n");
 }
 
+/**
+ * 0-based line (within `sectionText`) of the `nth` (0-based) occurrence of `` `raw` ``, or null.
+ * Used by the reading view to find which line a rendered probe comes from.
+ */
+export function nthLineWithCode(sectionText: string, raw: string, nth: number): number | null {
+  const needle = "`" + raw + "`";
+  const lines = sectionText.split("\n");
+  let seen = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const count = lines[i].split(needle).length - 1;
+    if (seen + count > nth) return i;
+    seen += count;
+  }
+  return null;
+}
+
 /** Table log text from a result line: drops the blockquote marker and markdown emphasis. */
 export function groupEventText(line: string): string {
-  return line.replace(/^\s*>\s?/, "").replace(/\*\*|__|\*|(?<![\w])_|_(?![\w])/g, "").trim();
+  // "_" is emphasis unless it sits between two word characters (snake_case stays); written without lookbehind (iOS < 16.4)
+  return line
+    .replace(/^\s*>\s?/, "")
+    .replace(/\*\*|__|\*|_/g, (tok, off: number, s: string) => {
+      if (tok !== "_") return "";
+      return /\w/.test(s.charAt(off - 1)) && /\w/.test(s.charAt(off + 1)) ? tok : "";
+    })
+    .trim();
 }

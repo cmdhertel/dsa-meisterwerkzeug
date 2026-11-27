@@ -4,7 +4,7 @@ import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetTy
 import { Component, editorLivePreviewField } from "obsidian";
 import type { Text } from "@codemirror/state";
 import type DsaMeisterwerkzeugPlugin from "../main";
-import { isProbeCode } from "./parse";
+import { inlineCodeSpans, isProbeCode } from "./parse";
 import { mountProbe, ProbeView } from "./view";
 
 class ProbeWidget extends WidgetType {
@@ -31,8 +31,6 @@ class ProbeWidget extends WidgetType {
     return true;
   }
 }
-
-const INLINE_CODE = /(?<!`)`([^`\n]+)`(?!`)/g;
 
 /** true if `lineNo` (1-based) lies inside a fenced code block (``` or ~~~). */
 export function insideFence(doc: Text, lineNo: number): boolean {
@@ -71,17 +69,15 @@ export function probeEditorExtension(plugin: DsaMeisterwerkzeugPlugin) {
             if (line.number <= lastLine) continue;
             lastLine = line.number;
             if (!/`\s*probe\s*:/i.test(line.text)) continue;
-            INLINE_CODE.lastIndex = 0;
-            let m: RegExpExecArray | null;
             let fenced: boolean | null = null;
-            while ((m = INLINE_CODE.exec(line.text))) {
-              if (!isProbeCode(m[1])) continue;
+            for (const s of inlineCodeSpans(line.text)) {
+              if (!isProbeCode(s.code)) continue;
               fenced ??= insideFence(doc, line.number);
               if (fenced) break;
-              const a = line.from + m.index;
-              const z = a + m[0].length;
+              const a = line.from + s.from;
+              const z = line.from + s.to;
               if (sel.ranges.some((r) => r.from <= z && r.to >= a)) continue;
-              b.add(a, z, Decoration.replace({ widget: new ProbeWidget(plugin, m[1], sourcePath) }));
+              b.add(a, z, Decoration.replace({ widget: new ProbeWidget(plugin, s.code, sourcePath) }));
             }
           }
         }

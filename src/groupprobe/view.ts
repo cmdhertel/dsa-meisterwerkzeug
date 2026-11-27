@@ -22,7 +22,7 @@ import {
   summarizeGroup,
   applySammelRound,
 } from "./logic";
-import { GroupSpec, OutcomeText, groupOutcomeTexts, parseGroupProbe, probeKey, requiredQsOf, requiredSuccessesOf, sammelOutcomeTexts } from "./parse";
+import { GroupSpec, OutcomeText, groupOutcomeTexts, parseAttrValue, parseGroupProbe, probeKey, requiredQsOf, requiredSuccessesOf, sammelOutcomeTexts } from "./parse";
 import { ManualPart, clearSammel, loadSaved, saveSammel } from "./state";
 
 const isSammel = (k: GroupKind) => k !== "gruppe";
@@ -44,7 +44,8 @@ export class GroupProbeModal extends Modal {
   private rollBtnHost!: HTMLElement;
   private manualSeq = 0;
 
-  constructor(private plugin: DsaMeisterwerkzeugPlugin, private spec: GroupSpec, private sourcePath: string, private raw: string | null) {
+  /** 0-based line of the probe in the note, when known (see insertBelow) */
+  constructor(private plugin: DsaMeisterwerkzeugPlugin, private spec: GroupSpec, private sourcePath: string, private raw: string | null, private line: number | null = null) {
     super(plugin.app);
     this.common = spec.modifier;
     this.key = raw ? probeKey(sourcePath, raw) : null;
@@ -73,6 +74,7 @@ export class GroupProbeModal extends Modal {
     const t = this.spec;
     this.titleEl.setText(`${KIND_LABEL[t.kind]}: ${t.talent.name}${formatModifier(t.modifier) ? " " + formatModifier(t.modifier) : ""}`);
     this.contentEl.createDiv({ cls: "dsa-gp-attrs", text: `${t.talent.attrs.join(" / ")}${t.interval ? ` · Intervall: ${t.interval}` : ""}` });
+    for (const w of this.spec.warnings) this.contentEl.createDiv({ cls: "dsa-gp-warn", text: `⚠ ${w}` });
 
     this.partsEl = this.contentEl.createDiv({ cls: "dsa-gp-parts" });
     this.renderParts();
@@ -173,11 +175,13 @@ export class GroupProbeModal extends Modal {
     add.addEventListener("click", () => {
       const n = name.value.trim();
       if (!n) return void new Notice("Bitte einen Namen eingeben.");
+      const values = attrs.map((a) => parseAttrValue(a.value));
+      if (values.some((v) => v === null)) return void new Notice(`Bitte alle Eigenschaften (${labels.join(", ")}) als Zahl eingeben.`);
       const id = `m:${++this.manualSeq}:${n}`;
       this.manual.push({
         id,
         name: n,
-        attrs: attrs.map((a) => Number(a.value) || 10) as [number, number, number],
+        attrs: values as [number, number, number],
         fw: Math.max(0, Number(fw.value) || 0),
       });
       this.selected.add(id);
@@ -214,7 +218,7 @@ export class GroupProbeModal extends Modal {
     this.rolls = rollParticipants(parts, this.common);
     if (this.state) {
       this.state = applySammelRound(this.state, this.rolls);
-      this.persistState();
+      void this.persistState();
     }
     const line = this.resultLine();
     if (line) {
@@ -236,19 +240,24 @@ export class GroupProbeModal extends Modal {
     this.renderOut();
   }
 
-  private persistState() {
+  private async persistState() {
     if (!this.key || !this.state) return;
-    if (this.state.status !== "läuft" || this.state.attempts === 0) return void clearSammel(this.plugin, this.key);
-    const mods: Record<string, number> = {};
-    this.mods.forEach((v, k) => v && (mods[k] = v));
-    void saveSammel(this.plugin, this.key, {
-      state: this.state,
-      selected: [...this.selected],
-      mods,
-      common: this.common,
-      manual: this.manual,
-      updated: Date.now(),
-    });
+    try {
+      if (this.state.status !== "läuft" || this.state.attempts === 0) return await clearSammel(this.plugin, this.key);
+      const mods: Record<string, number> = {};
+      this.mods.forEach((v, k) => v && (mods[k] = v));
+      await saveSammel(this.plugin, this.key, {
+        state: this.state,
+        selected: [...this.selected],
+        mods,
+        common: this.common,
+        manual: this.manual,
+        updated: Date.now(),
+      });
+    } catch (err) {
+      console.error("Sammelprobe konnte nicht gespeichert werden", err);
+      new Notice("Sammelprobe konnte nicht gespeichert werden. Der Fortschritt geht beim Schließen verloren.");
+    }
   }
 
   private resultLine(): string | null {
@@ -265,7 +274,7 @@ export class GroupProbeModal extends Modal {
     if (this.raw && file instanceof TFile) {
       let ok = false;
       await this.app.vault.process(file, (text) => {
-        const next = insertBelow(text, this.raw as string, line);
+        const next = insertBelow(text, this.raw as string, line, this.line);
         ok = next !== null;
         return next ?? text;
       });
@@ -350,7 +359,7 @@ export class GroupProbeModal extends Modal {
     const box = parent.createDiv({ cls: "dsa-gp-progress" });
     const bar = box.createDiv({ cls: "dsa-gp-bar" });
     const fill = bar.createDiv({ cls: `dsa-gp-bar-fill is-${st.status === "läuft" ? "run" : st.status === "geschafft" ? "ok" : "bad"}` });
-    fill.style.width = `${Math.min(100, Math.round((st.qs / st.target) * 100))}%`;
+    fill.setCssProps({ "--dsa-gp-w": `${Math.min(100, Math.round((st.qs / st.target) * 100))}%` });
     box.createDiv({
       cls: "dsa-gp-progress-text",
       text: `${st.qs}/${st.target} QS · Versuch ${st.attempts}/${st.maxAttempts}${st.interval ? ` (alle ${st.interval})` : ""} · ${sammelStatusText(st)}`,
@@ -366,7 +375,7 @@ export class GroupProbeModal extends Modal {
 // ---------------------------------------------------------------- inline button
 
 /** Mount a button for inline code `raw`. Returns the replacement element. */
-export function mountGroupProbe(plugin: DsaMeisterwerkzeugPlugin, raw: string, sourcePath: string): HTMLElement {
+export function mountGroupProbe(plugin: DsaMeisterwerkzeugPlugin, raw: string, sourcePath: string, line?: number): HTMLElement {
   const parsed = parseGroupProbe(raw);
   const el = document.createElement("span");
   if (!parsed.ok) {
@@ -389,7 +398,7 @@ export function mountGroupProbe(plugin: DsaMeisterwerkzeugPlugin, raw: string, s
   btn.addEventListener("click", (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
-    const modal = new GroupProbeModal(plugin, spec, sourcePath, raw);
+    const modal = new GroupProbeModal(plugin, spec, sourcePath, raw, line ?? null);
     const origClose = modal.onClose.bind(modal);
     modal.onClose = () => {
       origClose();

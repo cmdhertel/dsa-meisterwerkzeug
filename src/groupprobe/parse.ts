@@ -27,6 +27,8 @@ export interface GroupSpec {
   doneText: string[];
   failText: string[];
   partialText: string[];
+  /** non-fatal problems: empty outcome texts, outcome keys that do not apply to this kind (they are ignored) */
+  warnings: string[];
 }
 
 export type GroupParse = { ok: true; spec: GroupSpec } | { ok: false; error: string; raw: string };
@@ -35,6 +37,12 @@ const PREFIX = /^\s*(gruppensammelprobe|gruppenprobe|sammelprobe)\s*:/i;
 
 export function isGroupProbeCode(text: string): boolean {
   return PREFIX.test(text);
+}
+
+/** Attribute value typed into a text field: a whole number >= 0, otherwise null (empty or garbage is invalid, never a default). */
+export function parseAttrValue(text: string): number | null {
+  const t = text.trim();
+  return /^\d+$/.test(t) ? Number(t) : null;
 }
 
 export function kindOf(text: string): GroupKind | null {
@@ -82,17 +90,29 @@ export function parseGroupProbe(raw: string): GroupParse {
     doneText: [],
     failText: [],
     partialText: [],
+    warnings: [],
   };
+  const warn = (msg: string) => {
+    if (!spec.warnings.includes(msg)) spec.warnings.push(msg);
+  };
+  // gruppe ignores geschafft/gescheitert/Teilerfolg; sammel ignores ab N QS / sonst / mind. N Erfolge (see sammelOutcomeTexts / groupOutcomeTexts)
+  const ignoredKey = (label: string, why: string) => warn(`„${label}“ ${why} und wird ignoriert.`);
   for (const seg of rest) {
     const t = seg.trim();
     if (!t) continue;
     let k: RegExpExecArray | null;
     if ((k = AB_RE.exec(t))) {
-      if (k[2].trim()) spec.qsTexts.push({ min: Number(k[1]), text: k[2].trim() });
+      if (sammel) ignoredKey(`ab ${k[1]} QS:`, "gibt es nur bei Gruppenproben");
+      else if (k[2].trim()) spec.qsTexts.push({ min: Number(k[1]), text: k[2].trim() });
+      else warn(`„ab ${k[1]} QS:“ hat keinen Text.`);
     } else if ((k = MIND_RE.exec(t))) {
-      if (k[2].trim()) spec.successTexts.push({ min: Number(k[1]), text: k[2].trim() });
+      if (sammel) ignoredKey(`mind. ${k[1]} Erfolge:`, "gibt es nur bei Gruppenproben");
+      else if (k[2].trim()) spec.successTexts.push({ min: Number(k[1]), text: k[2].trim() });
+      else warn(`„mind. ${k[1]} Erfolge:“ hat keinen Text.`);
     } else if ((k = ELSE_RE.exec(t))) {
-      if (k[1].trim()) spec.elseTexts.push(k[1].trim());
+      if (sammel) ignoredKey(`${k[0].split(":")[0].trim()}:`, "gibt es nur bei Gruppenproben");
+      else if (k[1].trim()) spec.elseTexts.push(k[1].trim());
+      else warn(`„${k[0].split(":")[0].trim()}:“ hat keinen Text.`);
     } else if ((k = ZIEL_RE.exec(t))) {
       spec.target = Math.max(1, Number(k[1]));
     } else if ((k = VERS_RE.exec(t))) {
@@ -103,8 +123,12 @@ export function parseGroupProbe(raw: string): GroupParse {
       spec.interval = k[1].trim();
     } else if ((k = DONE_RE.exec(t))) {
       const txt = k[2].trim();
-      if (!txt) continue;
       const w = k[1].toLowerCase();
+      if (!sammel) ignoredKey(`${k[1]}:`, "gibt es nur bei Sammelproben");
+      if (!txt) {
+        warn(`„${k[1]}:“ hat keinen Text.`);
+        continue;
+      }
       (w === "geschafft" ? spec.doneText : w === "gescheitert" ? spec.failText : spec.partialText).push(txt);
     } else {
       return fail(`Unbekannter Abschnitt "${t.slice(0, 30)}": erwartet "ab N QS:", "sonst:", "mind. N Erfolge:", "Ziel N", "Versuche N" oder "Intervall …".`);

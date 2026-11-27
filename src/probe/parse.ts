@@ -130,3 +130,18 @@ export function unlockedOutcomes(outcomes: readonly ProbeOutcome[], failure: rea
   const hidden = outcomes.filter((o) => o.level > qs).map(({ label, text }) => ({ label, text }));
   return { shown, hidden };
 }
+
+/**
+ * Single-backtick inline code spans of one line: `` `x` `` yes, ``` ``x`` ``` no (double backticks are no inline code).
+ * Written without lookbehind (iOS < 16.4 cannot parse it). `from`/`to` are offsets in `line`, `to` exclusive, backticks included.
+ */
+export function inlineCodeSpans(line: string): { code: string; from: number; to: number }[] {
+  const out: { code: string; from: number; to: number }[] = [];
+  const re = /(^|[^`])`([^`\n]+)`(?!`)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(line))) {
+    const from = m.index + m[1].length;
+    out.push({ code: m[2], from, to: from + m[2].length + 2 });
+  }
+  return out;
+}

@@ -4,25 +4,26 @@ import type { Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { editorLivePreviewField } from "obsidian";
 import type DsaMeisterwerkzeugPlugin from "../main";
+import { inlineCodeSpans } from "../probe/parse";
 import { isGroupProbeCode } from "./parse";
 import { mountGroupProbe } from "./view";
 
 class GroupProbeWidget extends WidgetType {
-  constructor(private plugin: DsaMeisterwerkzeugPlugin, readonly raw: string, readonly sourcePath: string) {
+  /** `line`: 0-based line index in the note, so that the result goes under this very probe */
+  constructor(private plugin: DsaMeisterwerkzeugPlugin, readonly raw: string, readonly sourcePath: string, readonly line: number) {
     super();
   }
   eq(other: GroupProbeWidget) {
-    return other.raw === this.raw && other.sourcePath === this.sourcePath;
+    return other.raw === this.raw && other.sourcePath === this.sourcePath && other.line === this.line;
   }
   toDOM() {
-    return mountGroupProbe(this.plugin, this.raw, this.sourcePath);
+    return mountGroupProbe(this.plugin, this.raw, this.sourcePath, this.line);
   }
   ignoreEvent() {
     return true;
   }
 }
 
-const INLINE_CODE = /(?<!`)`([^`\n]+)`(?!`)/g;
 const LINE_HINT = /`\s*(gruppensammelprobe|gruppenprobe|sammelprobe)\s*:/i;
 
 function insideFence(doc: Text, lineNo: number): boolean {
@@ -61,17 +62,15 @@ export function groupProbeEditorExtension(plugin: DsaMeisterwerkzeugPlugin) {
             if (line.number <= lastLine) continue;
             lastLine = line.number;
             if (!LINE_HINT.test(line.text)) continue;
-            INLINE_CODE.lastIndex = 0;
-            let m: RegExpExecArray | null;
             let fenced: boolean | null = null;
-            while ((m = INLINE_CODE.exec(line.text))) {
-              if (!isGroupProbeCode(m[1])) continue;
+            for (const s of inlineCodeSpans(line.text)) {
+              if (!isGroupProbeCode(s.code)) continue;
               fenced ??= insideFence(doc, line.number);
               if (fenced) break;
-              const a = line.from + m.index;
-              const z = a + m[0].length;
+              const a = line.from + s.from;
+              const z = line.from + s.to;
               if (sel.ranges.some((r) => r.from <= z && r.to >= a)) continue;
-              b.add(a, z, Decoration.replace({ widget: new GroupProbeWidget(plugin, m[1], sourcePath) }));
+              b.add(a, z, Decoration.replace({ widget: new GroupProbeWidget(plugin, s.code, sourcePath, line.number - 1) }));
             }
           }
         }
