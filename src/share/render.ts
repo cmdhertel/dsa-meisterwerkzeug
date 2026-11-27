@@ -80,7 +80,7 @@ function renderRow(parent: HTMLElement, r: PlayerRow): void {
   if (r.barPct !== null) {
     const bar = row.createDiv({ cls: "dsa-ps-bar" });
     const fill = bar.createDiv({ cls: "dsa-ps-fill" });
-    fill.style.width = `${r.barPct}%`;
+    fill.setCssProps({ "--dsa-fill": `${r.barPct}%` });
     fill.addClass(r.barPct > 50 ? "ok" : r.barPct > 25 ? "warn" : "crit");
     if (r.lepText) bar.createSpan({ cls: "dsa-ps-bartext", text: r.lepText });
   }

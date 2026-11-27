@@ -7,6 +7,8 @@ export interface VNode {
   cls?: string;
   text?: string;
   attrs?: Record<string, string>;
+  /** CSS custom properties, set via setCssProps when mounted (no inline style attribute) */
+  props?: Record<string, string>;
   children?: VNode[];
   svg?: boolean;
 }
@@ -73,7 +75,7 @@ function healthNodes(r: PlayerRow): (VNode | null)[] {
     const fillCls = r.barPct > 50 ? "ok" : r.barPct > 25 ? "warn" : "crit";
     out.push(
       h("div", "dsa-psa-bar", [
-        { tag: "div", cls: `dsa-psa-fill ${fillCls}`, attrs: { style: `width:${Math.round(r.barPct)}%` } },
+        { tag: "div", cls: `dsa-psa-fill ${fillCls}`, props: { "--dsa-fill": `${Math.round(r.barPct)}%` } },
         r.lepText ? t("span", "dsa-psa-bartext", r.lepText) : null,
       ]),
     );
@@ -125,7 +127,8 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 /** Serialise a tree to HTML (tests; also a faithful picture of what is mounted). */
 export function toHtml(n: VNode): string {
-  const attrs = { ...(n.attrs ?? {}), ...(n.cls ? { class: n.cls } : {}) };
+  const style = n.props ? Object.entries(n.props).map(([k, v]) => `${k}:${v}`).join(";") : "";
+  const attrs = { ...(n.attrs ?? {}), ...(n.cls ? { class: n.cls } : {}), ...(style ? { style } : {}) };
   const a = Object.entries(attrs).map(([k, v]) => ` ${k}="${esc(v)}"`).join("");
   return `<${n.tag}${a}>${n.text ? esc(n.text) : ""}${(n.children ?? []).map(toHtml).join("")}</${n.tag}>`;
 }
@@ -134,6 +137,8 @@ function mount(doc: Document, parent: Element, n: VNode): void {
   const el = n.svg ? doc.createElementNS(SVG_NS, n.tag) : doc.createElement(n.tag);
   if (n.cls) el.setAttribute("class", n.cls);
   for (const [k, v] of Object.entries(n.attrs ?? {})) el.setAttribute(k, v);
+  const setProps = (el as Partial<HTMLElement>).setCssProps;
+  if (n.props && setProps) setProps.call(el, n.props);
   if (n.text) el.textContent = n.text;
   parent.appendChild(el);
   for (const c of n.children ?? []) mount(doc, el, c);
