@@ -24,6 +24,7 @@ import {
 } from "./logic";
 import { GroupSpec, OutcomeText, groupOutcomeTexts, parseAttrValue, parseGroupProbe, probeKey, requiredQsOf, requiredSuccessesOf, sammelOutcomeTexts } from "./parse";
 import { ManualPart, clearSammel, loadSaved, saveSammel } from "./state";
+import { appendVaultDocLink } from "../docLink";
 
 const isSammel = (k: GroupKind) => k !== "gruppe";
 const singleHero = (k: GroupKind) => k === "sammel";
@@ -140,10 +141,12 @@ export class GroupProbeModal extends Modal {
     el.empty();
     el.createDiv({ cls: "dsa-gp-h", text: singleHero(this.spec.kind) ? "Held" : "Teilnehmer" });
     if (!this.heroes.length) {
-      el.createDiv({
-        cls: "dsa-gp-empty",
-        text: "Keine Helden gefunden. Importiere Helden (Befehl „Held aus JSON importieren“) oder füge unten Teilnehmer von Hand hinzu.",
-      });
+      appendVaultDocLink(
+        el.createDiv({
+          cls: "dsa-gp-empty",
+          text: "Keine Helden gefunden. Importiere Helden (Befehl „Helden: Held aus JSON importieren“) oder füge unten Teilnehmer von Hand hinzu.",
+        }),
+      );
     }
     const list = el.createDiv({ cls: "dsa-gp-list" });
     for (const h of this.heroes) {

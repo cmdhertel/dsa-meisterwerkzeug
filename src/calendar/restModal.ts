@@ -5,6 +5,7 @@ import type DsaMeisterwerkzeugPlugin from "../main";
 import { calendarOf } from "./state";
 import { formatDate } from "./engine";
 import { POOL_LABEL, PoolKey, RestHeroInput, RestHeroResult, RestPoolResult, rerollHero, restEventText, rollRest, withManualValue } from "./rest";
+import { appendVaultDocLink } from "../docLink";
 
 const KEYS: PoolKey[] = ["lep", "asp", "kap"];
 /** Frontmatter keys holding the current values (own keys; the import-managed LeP/AsP/KaP stay maxima). */
@@ -36,7 +37,7 @@ class RestModal extends Modal {
     this.modalEl.addClass("dsa-cal-rest");
     this.loadHeroes();
     if (!this.inputs.length) {
-      this.contentEl.createEl("p", { text: "Keine Helden mit Notiz gefunden (Heldenimport zuerst durchführen)." });
+      appendVaultDocLink(this.contentEl.createEl("p", { text: "Keine Helden mit Notiz gefunden (Heldenimport zuerst durchführen)." }));
       return;
     }
     const top = this.contentEl.createDiv({ cls: "dsa-cal-rest-top" });

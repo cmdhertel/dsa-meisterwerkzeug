@@ -4,6 +4,7 @@ import { openCastDialog } from "../magic";
 import { ProbeModal } from "../probe/command";
 import type { RegieCtx } from "./ctx";
 import { HeroInfo, Pool, loadHeroes } from "./vault";
+import { appendVaultDocLink } from "../docLink";
 
 const POOLS = [
   ["LeP", "lep"],
@@ -40,7 +41,7 @@ export function buildPartyStrip(host: HTMLElement, ctx: RegieCtx): { render(): v
     host.empty();
     const heroes = loadHeroes(ctx.plugin, ctx.campaign());
     if (!heroes.length) {
-      host.createDiv({ cls: "dsa-regie-empty", text: "Keine Helden importiert." });
+      appendVaultDocLink(host.createDiv({ cls: "dsa-regie-empty", text: "Keine Helden importiert (Befehl „Helden: Held aus JSON importieren“)." }));
       return;
     }
     for (const h of heroes) {

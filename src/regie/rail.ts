@@ -3,6 +3,7 @@ import { Menu, setIcon } from "obsidian";
 import type { RegieCtx } from "./ctx";
 import { formatDuration, sceneElapsed } from "./run";
 import type { SceneInfo } from "./vault";
+import { appendVaultDocLink } from "../docLink";
 
 export interface RailApi {
   render(): void;
@@ -111,14 +112,14 @@ export function buildRail(host: HTMLElement, ctx: RegieCtx): RailApi {
     host.empty();
     const s = ctx.session();
     if (!s) {
-      host.createDiv({ cls: "dsa-regie-empty", text: "Keine Session gewählt." });
+      appendVaultDocLink(host.createDiv({ cls: "dsa-regie-empty", text: "Keine Session gewählt. Sessions sind Notizen mit typ: session." }));
       return;
     }
     const set = ctx.scenes();
     const list = host.createDiv({ cls: "dsa-regie-rail-list" });
     item(list, s, null);
     if (!set.all.length) {
-      list.createDiv({ cls: "dsa-regie-empty", text: "Keine Szenen gefunden. Szenen-Notizen brauchen typ: szene und teil_von: [[Session]]." });
+      appendVaultDocLink(list.createDiv({ cls: "dsa-regie-empty", text: "Keine Szenen gefunden. Szenen-Notizen brauchen typ: szene und teil_von: [[Session]]." }));
     }
     set.own.forEach((sc) => item(list, sc.path, sc));
     for (const adv of set.adventures) {

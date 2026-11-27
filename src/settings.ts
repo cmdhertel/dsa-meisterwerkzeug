@@ -3,13 +3,13 @@ import type DsaMeisterwerkzeugPlugin from "./main";
 import { addShareSettings } from "./share/settings";
 import { LAYOUT_LABEL, LAYOUT_ORDER, normalizeLayout, refreshCockpitLayouts } from "./cockpit/layout";
 import { DEFAULT_SETTINGS, normalizeSettingPath } from "./settingsData";
+import { VAULT_DOC_URL } from "./docLink";
 
 export { DEFAULT_SETTINGS, folderPath, resolveSettings } from "./settingsData";
 export type { DsaSettings, PluginData } from "./settingsData";
 
 /** Delay after the last keystroke before a folder field is saved and its data rescanned. */
 const PATH_SAVE_DELAY_MS = 600;
-const VAULT_DOC_URL = "https://github.com/cmdhertel/dsa-meisterwerkzeug/blob/main/docs/VAULT.md";
 
 export class DsaSettingTab extends PluginSettingTab {
   constructor(app: App, private plugin: DsaMeisterwerkzeugPlugin) {

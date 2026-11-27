@@ -1,6 +1,7 @@
 // Small Obsidian modals used by the cockpit. Each returns a promise that resolves to null on cancel.
 import { App, Modal, Setting, SuggestModal } from "obsidian";
 import type { Combatant } from "../model";
+import { appendVaultDocLink } from "../docLink";
 
 function formModal<T>(app: App, title: string, build: (el: HTMLElement, submit: (v: T) => void) => void): Promise<T | null> {
   return new Promise((resolve) => {
@@ -189,7 +190,7 @@ export function pickHeroes(app: App, heroes: HeroChoice[], onlyManualLabel = "Ma
     const render = () => {
       list.empty();
       const shown = heroes.filter((h) => !filter || h.campaign === filter);
-      if (!shown.length) list.createEl("p", { text: "Keine Helden mit importierten Daten.", cls: "dsa-mw-muted" });
+      if (!shown.length) appendVaultDocLink(list.createEl("p", { text: "Keine Helden mit importierten Daten.", cls: "dsa-mw-muted" }));
       for (const h of shown) {
         const row = list.createEl("label", { cls: "dsa-cp-heropick" });
         const cb = row.createEl("input", { type: "checkbox" });
