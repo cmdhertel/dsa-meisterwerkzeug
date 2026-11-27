@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digestNote, gmSecret, parseKurzprofil, secretTasks, sectionBody, toggleTask } from "../src/regie/digest";
+import { loadRegieText, mayWrite } from "../src/regie/state";
 import { BLOCK_END, BLOCK_START, hasMitschrift, highlights, renderMitschrift, upsertMitschrift } from "../src/regie/journal";
 import {
   activateScene,
@@ -395,5 +396,30 @@ describe("journal", () => {
     expect(out.endsWith(`${BLOCK_END}\n`)).toBe(true);
     expect(upsertMitschrift(out, blk)).toBe(out);
     expect(hasMitschrift(note)).toBe(false);
+  });
+});
+
+describe("regie.json load guard (#5)", () => {
+  it("a missing file is a fresh start", () => {
+    const r = loadRegieText(null);
+    expect(r).toEqual({ ok: true, data: { version: 1, lastSession: null, runs: {} } });
+  });
+  it("valid JSON object loads", () => {
+    const r = loadRegieText(JSON.stringify({ version: 1, lastSession: "S.md", runs: { "S.md": newRun("S.md") } }));
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data.lastSession).toBe("S.md");
+  });
+  it("broken JSON is reported as failed, never as empty data", () => {
+    expect(loadRegieText("{ nicht json")).toEqual({ ok: false });
+    expect(loadRegieText("")).toEqual({ ok: false });
+  });
+  it("non-object JSON counts as broken", () => {
+    expect(loadRegieText("null")).toEqual({ ok: false });
+    expect(loadRegieText("[]")).toEqual({ ok: false });
+    expect(loadRegieText("42")).toEqual({ ok: false });
+  });
+  it("writing is refused after a failed load", () => {
+    expect(mayWrite(true)).toBe(false);
+    expect(mayWrite(false)).toBe(true);
   });
 });

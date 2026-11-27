@@ -35,7 +35,9 @@ export function registerRegie(plugin: DsaMeisterwerkzeugPlugin): void {
   const dir = plugin.manifest.dir ?? `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
   const state = new RegieState(plugin.app, `${dir}/regie.json`);
   setRegie(plugin, state);
-  void state.load();
+  void state.load().then((ok) => {
+    if (!ok) new Notice("regie.json ist beschädigt und konnte nicht gelesen werden. Sicherung: regie.json.bak. Die Sitzungsregie speichert nicht, bis die Datei repariert ist.");
+  });
   plugin.register(() => void state.flush());
 
   plugin.registerView(REGIE_VIEW_TYPE, (leaf) => new RegieView(leaf, plugin));

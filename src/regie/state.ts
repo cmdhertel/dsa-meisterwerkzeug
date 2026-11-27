@@ -24,6 +24,27 @@ export function normalizeRegieData(raw: unknown): RegieData {
   return out;
 }
 
+export type RegieLoadResult = { ok: true; data: RegieData } | { ok: false };
+
+/**
+ * Interprets the content of regie.json. `text` is null if there is no file yet (a fresh start, which is fine).
+ * A file that exists but is not a JSON object counts as broken: it must never be replaced by empty data,
+ * because the next save would destroy it.
+ */
+/** Saving is allowed unless the last load found a broken file. */
+export const mayWrite = (loadFailed: boolean): boolean => !loadFailed;
+
+export function loadRegieText(text: string | null): RegieLoadResult {
+  if (text === null) return { ok: true, data: emptyRegieData() };
+  try {
+    const parsed: unknown = JSON.parse(text);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return { ok: false };
+    return { ok: true, data: normalizeRegieData(parsed) };
+  } catch {
+    return { ok: false };
+  }
+}
+
 /** Re-keys runs and scene entries after a note was renamed/moved. Pure; returns a new object. */
 export function renameInData(data: RegieData, from: string, to: string): RegieData {
   if (from === to) return data;
@@ -42,16 +63,37 @@ export class RegieState {
   private listeners = new Set<(sessionPath: string | null) => void>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private dirty = false;
+  /** Set when the file existed but could not be read or parsed; flush() then refuses to overwrite it. */
+  loadFailed = false;
 
   constructor(private app: App, private path: string, private now: () => number = Date.now) {}
 
-  async load(): Promise<void> {
+  /** Loads regie.json. Returns false if the file exists but is broken (the caller should tell the user). */
+  async load(): Promise<boolean> {
+    let text: string | null = null;
+    let readFailed = false;
     try {
-      if (await this.app.vault.adapter.exists(this.path)) this.data = normalizeRegieData(JSON.parse(await this.app.vault.adapter.read(this.path)));
+      if (await this.app.vault.adapter.exists(this.path)) text = await this.app.vault.adapter.read(this.path);
     } catch {
+      readFailed = true;
+    }
+    const res: RegieLoadResult = readFailed ? { ok: false } : loadRegieText(text);
+    if (res.ok) {
+      this.data = res.data;
+    } else {
+      // Keep the broken file as a backup and refuse to write until it is repaired.
+      this.loadFailed = true;
       this.data = emptyRegieData();
+      if (text !== null) {
+        try {
+          await this.app.vault.adapter.write(`${this.path}.bak`, text);
+        } catch (e) {
+          console.error("Sitzungsregie: Sicherung fehlgeschlagen", e);
+        }
+      }
     }
     this.emit(null);
+    return res.ok;
   }
 
   on(fn: (sessionPath: string | null) => void): () => void {
@@ -80,6 +122,10 @@ export class RegieState {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     if (!this.dirty) return;
+    if (!mayWrite(this.loadFailed)) {
+      console.error("Sitzungsregie: Speichern verweigert, regie.json war beim Laden beschädigt");
+      return;
+    }
     this.dirty = false;
     try {
       await this.app.vault.adapter.write(this.path, JSON.stringify(this.data));
