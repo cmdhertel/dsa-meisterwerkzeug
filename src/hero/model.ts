@@ -271,5 +271,3 @@ export function heroToCombatant(hero: Hero): Combatant {
     ko: heroKo(hero),
   };
 }
-
-export const ALL_TALENT_NAMES = TALENT_BY_KEY.map((t) => t.name);

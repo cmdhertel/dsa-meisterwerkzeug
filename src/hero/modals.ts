@@ -1,4 +1,4 @@
-import { App, FuzzySuggestModal, Modal, Setting, TFile } from "obsidian";
+import { App, FuzzySuggestModal, Modal, Setting } from "obsidian";
 
 export function pick<T>(app: App, items: T[], label: (t: T) => string, placeholder: string): Promise<T | null> {
   return new Promise((resolve) => {
@@ -108,8 +108,6 @@ export function previewModal(app: App, data: PreviewData): Promise<boolean> {
     new M(app).open();
   });
 }
-
-export const isFile = (x: unknown): x is TFile => !!x && typeof (x as TFile).path === "string" && "extension" in (x as object);
 
 export const NEW_HERO = Symbol("new-hero");
 
