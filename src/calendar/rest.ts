@@ -57,6 +57,17 @@ export function rollRest(heroes: RestHeroInput[], globalMod: number, roller: Rol
   });
 }
 
+/**
+ * Re-rolls one hero only. Every other hero keeps its result, including manual corrections.
+ * Returns a new array; the other entries are the same objects.
+ */
+export function rerollHero(heroes: RestHeroInput[], results: RestHeroResult[], index: number, globalMod: number, roller: Roller): RestHeroResult[] {
+  const next = results.slice();
+  const hero = heroes[index];
+  if (hero) next[index] = rollRest([hero], globalMod, roller)[0];
+  return next;
+}
+
 /** Re-derive a pool result after the GM typed a new value (clamped 0..max). */
 export function withManualValue(r: RestPoolResult, value: number): RestPoolResult {
   const after = Math.max(0, Math.min(r.max, Math.trunc(value)));

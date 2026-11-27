@@ -4,7 +4,7 @@ import { defaultRoller } from "../engine/dice";
 import type DsaMeisterwerkzeugPlugin from "../main";
 import { calendarOf } from "./state";
 import { formatDate } from "./engine";
-import { POOL_LABEL, PoolKey, RestHeroInput, RestHeroResult, RestPoolResult, restEventText, rollRest, withManualValue } from "./rest";
+import { POOL_LABEL, PoolKey, RestHeroInput, RestHeroResult, RestPoolResult, rerollHero, restEventText, rollRest, withManualValue } from "./rest";
 
 const KEYS: PoolKey[] = ["lep", "asp", "kap"];
 /** Frontmatter keys holding the current values (own keys; the import-managed LeP/AsP/KaP stay maxima). */
@@ -45,7 +45,7 @@ class RestModal extends Modal {
     gsel.title = "Gute Unterkunft +1, schlechte Bedingungen −1 …";
     const dl = top.createEl("label", { text: "Dauer (Tage) " });
     const di = dl.createEl("input", { type: "number", value: String(this.days), attr: { min: "0", max: "30" } });
-    di.style.width = "56px";
+    di.addClass("dsa-cal-rest-num");
     di.onchange = () => (this.days = Math.max(0, Math.trunc(parseFloat(di.value) || 0)));
     top.createEl("button", { text: "Würfeln" }).onclick = () => this.roll();
     this.body = this.contentEl.createDiv({ cls: "dsa-cal-rest-body" });
@@ -87,6 +87,12 @@ class RestModal extends Modal {
     this.draw();
   }
 
+  /** Re-rolls only the hero at index i; the others keep their results and manual values. */
+  private rerollAt(i: number) {
+    this.results = rerollHero(this.inputs, this.results, i, this.globalMod, defaultRoller);
+    this.draw();
+  }
+
   private draw() {
     this.body.empty();
     const table = this.body.createEl("table", { cls: "dsa-cal-rest-table" });
@@ -100,7 +106,7 @@ class RestModal extends Modal {
       const tdm = tr.createEl("td");
       this.modSelect(tdm, h.mod, (v) => {
         h.mod = v;
-        this.roll();
+        this.rerollAt(i);
       });
       for (const k of KEYS) this.poolCell(tr.createEl("td"), r, k);
     });
@@ -114,7 +120,7 @@ class RestModal extends Modal {
     }
     td.createDiv({ cls: "dsa-cal-muted", text: `${p.before}/${p.max} · W6 ${p.roll}${p.mod ? (p.mod > 0 ? "+" : "") + p.mod : ""}` });
     const inp = td.createEl("input", { type: "number", value: String(p.after), attr: { min: "0", max: String(p.max) } });
-    inp.style.width = "56px";
+    inp.addClass("dsa-cal-rest-num");
     inp.onchange = () => {
       hero[k] = withManualValue(p, parseFloat(inp.value) || 0);
       inp.value = String(hero[k].after);

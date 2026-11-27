@@ -403,7 +403,7 @@
 .dsa-cal-nav-title { font-weight: 600; flex: 1; text-align: center; }
 .dsa-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 .dsa-cal-wd { text-align: center; font-size: 0.75em; color: var(--text-muted); }
-.dsa-cal-cell { text-align: center; padding: 4px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; position: relative; }
+.dsa-cal-cell { text-align: center; padding: 4px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; position: relative; width: 100%; background: transparent; color: inherit; font: inherit; }
 .dsa-cal-cell:hover { background: var(--background-modifier-hover); }
 .dsa-cal-empty { cursor: default; pointer-events: none; }
 .dsa-cal-cell.is-holy { color: var(--text-accent); font-weight: 600; }
@@ -419,6 +419,7 @@
 .dsa-cal-rest-table { width: 100%; }
 .dsa-cal-rest-table td, .dsa-cal-rest-table th { padding: 3px 6px; vertical-align: top; text-align: left; }
 .dsa-cal-rest-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+.dsa-cal-rest-num { width: 56px; }
 /* === /calendar === */
 
 /* === magic === */
