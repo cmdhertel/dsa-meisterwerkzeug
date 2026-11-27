@@ -15,7 +15,8 @@ export function renderEstimatePanel(el: HTMLElement, e: Estimate, partyLabel: st
     text: "Heuristik, keine offizielle Regel: statischer Vergleich der erwarteten Schadensraten, ohne Ausfälle während des Kampfes, Zauber, Manöver oder Gelände.",
     cls: "dsa-enc-hint",
   });
-  const t = el.createEl("table", { cls: "dsa-enc-table dsa-enc-est-table" });
+  // wrapped so a narrow (mobile) view scrolls the table instead of pushing the layout wider
+  const t = el.createDiv({ cls: "dsa-enc-table-wrap" }).createEl("table", { cls: "dsa-enc-table dsa-enc-est-table" });
   const hr = t.createEl("thead").createEl("tr");
   for (const h of ["", "Kämpfer", "LeP gesamt", "Angriffe/Runde", "Schaden/Runde", "Runden bis 0 LeP"]) hr.createEl("th", { text: h });
   const body = t.createEl("tbody");
@@ -45,7 +46,8 @@ export interface TableHooks {
 }
 
 export function renderEnemyTable(el: HTMLElement, rows: readonly ResolvedEntry[], hooks: TableHooks): void {
-  const t = el.createEl("table", { cls: "dsa-enc-table" });
+  // wrapped so a narrow (mobile) view scrolls the table instead of pushing the layout wider
+  const t = el.createDiv({ cls: "dsa-enc-table-wrap" }).createEl("table", { cls: "dsa-enc-table" });
   const hr = t.createEl("thead").createEl("tr");
   for (const h of ["Anzahl", "Kreatur", "LeP", "INI", "RS", "AT", "TP"]) hr.createEl("th", { text: h });
   const body = t.createEl("tbody");

@@ -304,6 +304,7 @@
 .dsa-enc-modal { width: min(980px, 95vw); }
 .dsa-enc-title { font-size: 1.15em; font-weight: 600; margin-bottom: 6px; }
 .dsa-enc h4 { margin: 10px 0 4px; }
+.dsa-enc-table-wrap { overflow-x: auto; max-width: 100%; }
 .dsa-enc-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
 .dsa-enc-table th, .dsa-enc-table td { text-align: left; padding: 2px 8px 2px 0; border-bottom: 1px solid var(--background-modifier-border); }
 .dsa-enc-missing { color: var(--text-error); }
