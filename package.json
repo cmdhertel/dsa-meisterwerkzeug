@@ -1,7 +1,7 @@
 {
   "name": "dsa-meisterwerkzeug",
   "version": "0.1.0",
-  "description": "Game master toolkit for Das Schwarze Auge 5 (DSA5) in Obsidian",
+  "description": "Game master toolkit for Das Schwarze Auge 5 (DSA5) in Obsidian (German UI)",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
