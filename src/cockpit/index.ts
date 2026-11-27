@@ -33,7 +33,7 @@ export function registerCockpit(plugin: DsaMeisterwerkzeugPlugin): void {
   );
   plugin.registerView(COCKPIT_VIEW_TYPE, (leaf) => new CockpitView(leaf, plugin, session));
   plugin.addRibbonIcon("swords", "Kampf-Cockpit öffnen", () => void openCockpit(plugin));
-  plugin.addCommand({ id: "open-cockpit", name: "Kampf-Cockpit öffnen", callback: () => void openCockpit(plugin) });
+  plugin.addCommand({ id: "open-cockpit", name: "Kampf-Cockpit: Öffnen", callback: () => void openCockpit(plugin) });
   plugin.addCommand({
     id: "cockpit-layout",
     name: "Kampf-Cockpit: Ansicht wechseln (Kompakt/Detail/Automatisch)",
@@ -43,7 +43,7 @@ export function registerCockpit(plugin: DsaMeisterwerkzeugPlugin): void {
       new Notice(`Kampf-Cockpit: ${LAYOUT_LABEL[next]}`);
     },
   });
-  plugin.addCommand({ id: "cockpit-add-enemy", name: "Gegner hinzufügen", callback: () => void addEnemyFlow(plugin) });
-  plugin.addCommand({ id: "cockpit-add-heroes", name: "Helden hinzufügen", callback: () => void addHeroesFlow(plugin) });
-  plugin.addCommand({ id: "cockpit-load-note", name: "Kampf aus Notiz laden (encounter-Blöcke)", callback: () => void loadFromNoteFlow(plugin) });
+  plugin.addCommand({ id: "cockpit-add-enemy", name: "Kampf-Cockpit: Gegner hinzufügen", callback: () => void addEnemyFlow(plugin) });
+  plugin.addCommand({ id: "cockpit-add-heroes", name: "Kampf-Cockpit: Helden hinzufügen", callback: () => void addHeroesFlow(plugin) });
+  plugin.addCommand({ id: "cockpit-load-note", name: "Kampf-Cockpit: Kampf aus Notiz laden (encounter-Blöcke)", callback: () => void loadFromNoteFlow(plugin) });
 }

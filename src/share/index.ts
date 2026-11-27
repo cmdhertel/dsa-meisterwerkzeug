@@ -32,7 +32,7 @@ export async function shareFight(plugin: DsaMeisterwerkzeugPlugin, markdown: str
 /** Registers the player-view code block and the share command. */
 export function registerShare(plugin: DsaMeisterwerkzeugPlugin): void {
   registerPlayerBlock(plugin);
-  plugin.addCommand({ id: "share-fight", name: "Kampf auf Spielerbildschirm zeigen", callback: () => void shareFight(plugin) });
-  plugin.addCommand({ id: "share-fight-aventurisch", name: "Kampf an Spielerbildschirm senden (Aventurisch)", callback: () => void shareFight(plugin, SHARE_MARKDOWN_AVENTURISCH) });
-  plugin.addCommand({ id: "share-fight-schlicht", name: "Kampf an Spielerbildschirm senden (Schlicht)", callback: () => void shareFight(plugin, SHARE_MARKDOWN_SCHLICHT) });
+  plugin.addCommand({ id: "share-fight", name: "Spielerbildschirm: Kampf zeigen", callback: () => void shareFight(plugin) });
+  plugin.addCommand({ id: "share-fight-aventurisch", name: "Spielerbildschirm: Kampf zeigen (Aventurisch)", callback: () => void shareFight(plugin, SHARE_MARKDOWN_AVENTURISCH) });
+  plugin.addCommand({ id: "share-fight-schlicht", name: "Spielerbildschirm: Kampf zeigen (Schlicht)", callback: () => void shareFight(plugin, SHARE_MARKDOWN_SCHLICHT) });
 }

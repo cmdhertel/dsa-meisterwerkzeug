@@ -30,6 +30,6 @@ export function registerMagic(plugin: DsaMeisterwerkzeugPlugin): void {
     }
   });
   plugin.registerEditorExtension(magicEditorExtension(plugin));
-  plugin.addCommand({ id: "zauber-wirken", name: "Zauber wirken", callback: () => openCastDialog(plugin, { kind: "zauber" }) });
-  plugin.addCommand({ id: "liturgie-wirken", name: "Liturgie wirken", callback: () => openCastDialog(plugin, { kind: "liturgie" }) });
+  plugin.addCommand({ id: "zauber-wirken", name: "Magie: Zauber wirken", callback: () => openCastDialog(plugin, { kind: "zauber" }) });
+  plugin.addCommand({ id: "liturgie-wirken", name: "Magie: Liturgie wirken", callback: () => openCastDialog(plugin, { kind: "liturgie" }) });
 }

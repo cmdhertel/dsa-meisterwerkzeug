@@ -26,16 +26,16 @@ export function registerCalendar(plugin: DsaMeisterwerkzeugPlugin): void {
 
   plugin.registerView(CALENDAR_VIEW_TYPE, (leaf) => new CalendarView(leaf, plugin));
   plugin.addRibbonIcon("calendar-days", "Aventurischer Kalender öffnen", () => void openCalendar(plugin));
-  plugin.addCommand({ id: "open-calendar", name: "Aventurischer Kalender öffnen", callback: () => void openCalendar(plugin) });
+  plugin.addCommand({ id: "open-calendar", name: "Kalender: Aventurischen Kalender öffnen", callback: () => void openCalendar(plugin) });
   plugin.addCommand({
     id: "calendar-next-day",
-    name: "Einen Tag weiter",
+    name: "Kalender: Einen Tag weiter",
     callback: () => new Notice(formatDate(state.advance(1))),
   });
-  plugin.addCommand({ id: "calendar-set-date", name: "Datum setzen", callback: () => void askForDate(plugin) });
+  plugin.addCommand({ id: "calendar-set-date", name: "Kalender: Datum setzen", callback: () => void askForDate(plugin) });
   plugin.addCommand({
     id: "calendar-insert-date",
-    name: "Aktuelles Datum einfügen",
+    name: "Kalender: Aktuelles Datum einfügen",
     editorCallback: (editor) => editor.replaceSelection(formatDate(state.getDate())),
   });
 

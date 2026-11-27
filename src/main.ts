@@ -39,7 +39,7 @@ export default class DsaMeisterwerkzeugPlugin extends Plugin {
     this.addSettingTab(new DsaSettingTab(this.app, this));
     this.addCommand({
       id: "import-hero-json",
-      name: "Held aus JSON importieren",
+      name: "Helden: Held aus JSON importieren",
       callback: () => void importHero(this),
     });
     registerCockpit(this);

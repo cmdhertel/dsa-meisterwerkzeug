@@ -21,5 +21,5 @@ export function registerProbe(plugin: DsaMeisterwerkzeugPlugin): void {
   });
   // live preview
   plugin.registerEditorExtension(probeEditorExtension(plugin));
-  plugin.addCommand({ id: "probe-wuerfeln", name: "Probe würfeln", callback: () => new ProbeModal(plugin).open() });
+  plugin.addCommand({ id: "probe-wuerfeln", name: "Proben: Probe würfeln", callback: () => new ProbeModal(plugin).open() });
 }

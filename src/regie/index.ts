@@ -44,11 +44,11 @@ export function registerRegie(plugin: DsaMeisterwerkzeugPlugin): void {
 
   plugin.registerEvent(plugin.app.vault.on("rename", (f, old) => state.rename(old, f.path)));
 
-  plugin.addCommand({ id: "regie-open", name: "Sitzungsregie öffnen", callback: () => void openRegie(plugin) });
+  plugin.addCommand({ id: "regie-open", name: "Sitzungsregie: Öffnen", callback: () => void openRegie(plugin) });
 
   plugin.addCommand({
     id: "regie-open-current",
-    name: "Sitzungsregie für aktuelle Notiz öffnen",
+    name: "Sitzungsregie: Für aktuelle Notiz öffnen",
     callback: () => {
       const f = plugin.app.workspace.getActiveFile();
       if (!f) return void new Notice("Keine aktive Notiz.");

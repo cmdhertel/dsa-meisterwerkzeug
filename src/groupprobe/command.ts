@@ -113,12 +113,12 @@ export function startAdHoc(plugin: DsaMeisterwerkzeugPlugin, kind: GroupKind): v
 }
 
 export function registerGroupProbeCommands(plugin: DsaMeisterwerkzeugPlugin): void {
-  plugin.addCommand({ id: "gruppenprobe-wuerfeln", name: "Gruppenprobe würfeln", callback: () => startAdHoc(plugin, "gruppe") });
-  plugin.addCommand({ id: "sammelprobe-starten", name: "Sammelprobe starten", callback: () => startAdHoc(plugin, "sammel") });
-  plugin.addCommand({ id: "gruppensammelprobe-starten", name: "Gruppensammelprobe starten", callback: () => startAdHoc(plugin, "gruppensammel") });
+  plugin.addCommand({ id: "gruppenprobe-wuerfeln", name: "Proben: Gruppenprobe würfeln", callback: () => startAdHoc(plugin, "gruppe") });
+  plugin.addCommand({ id: "sammelprobe-starten", name: "Proben: Sammelprobe starten", callback: () => startAdHoc(plugin, "sammel") });
+  plugin.addCommand({ id: "gruppensammelprobe-starten", name: "Proben: Gruppensammelprobe starten", callback: () => startAdHoc(plugin, "gruppensammel") });
   plugin.addCommand({
     id: "gruppenprobe-einfuegen",
-    name: "Gruppen-/Sammelprobe einfügen",
+    name: "Proben: Gruppen-/Sammelprobe einfügen",
     editorCallback: (editor: Editor) => {
       const kinds = [
         ["gruppe", "Gruppenprobe"],

@@ -23,7 +23,7 @@ Ein [Obsidian](https://obsidian.md)-Plugin für Spielleiter:innen von **Das Schw
 | **Sitzungsregie** | Szenen, Mitschrift (automatisch), offene Geheimnisse aus früheren Sessions, Schnellnotizen, Spielerübersicht. |
 | **Spielerbildschirm** | Zeigt den Kampf über das Plugin „TTRPG Tools – Player Screen“ (optional) im aventurischen oder schlichten Stil. |
 
-Alle Befehle findest du in der Befehlspalette (`Strg/Cmd + P`) unter „DSA“-nahen Namen wie *Kampf-Cockpit öffnen*, *Probe würfeln*, *Zauber wirken*, *Aventurischer Kalender öffnen* oder *Sitzungsregie öffnen*.
+Alle Befehle findest du in der Befehlspalette (`Strg/Cmd + P`) unter Namen mit Bereichs-Präfix wie *Kampf-Cockpit: Öffnen*, *Proben: Probe würfeln*, *Magie: Zauber wirken*, *Kalender: Aventurischen Kalender öffnen* oder *Sitzungsregie: Öffnen*.
 
 ## Installation
 
