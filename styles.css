@@ -738,3 +738,8 @@
 .is-mobile .dsa-regie-capture-input { font-size: 16px; }
 @media (hover: none) { .dsa-regie-entry-actions, .dsa-regie-rail-kebab { opacity: 1; } }
 /* === /regie === */
+
+/* hero */
+.dsa-warning {
+  color: var(--text-warning);
+}
