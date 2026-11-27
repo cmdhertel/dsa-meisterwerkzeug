@@ -85,7 +85,9 @@ export function chooseDataFileName(
   safe: (s: string) => string,
 ): string {
   for (const [file, uid] of Object.entries(existing)) if (uid === hero.uid) return file;
-  const free = (f: string) => !(f in existing);
+  // file names are compared case-insensitively: "Alrik.md" and "alrik.md" are the same file on macOS/Windows
+  const taken = new Set(Object.keys(existing).map((f) => f.toLowerCase()));
+  const free = (f: string) => !taken.has(f.toLowerCase());
   const a = `${safe(hero.name)}.dsahero.json`;
   if (free(a)) return a;
   const b = `${safe(noteBasename)}.dsahero.json`;

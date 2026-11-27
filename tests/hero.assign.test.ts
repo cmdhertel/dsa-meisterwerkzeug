@@ -61,4 +61,10 @@ describe("chooseDataFileName", () => {
       chooseDataFileName(hero, "Gwyn", { "Thorwin Eichhaus.dsahero.json": "x", "Gwyn.dsahero.json": "y" }, safe),
     ).toBe("Gwyn (uid-thor).dsahero.json");
   });
+  it("treats a differently cased existing file name as taken", () => {
+    expect(chooseDataFileName(hero, "Gwyn", { "thorwin eichhaus.dsahero.json": "x" }, safe)).toBe("Gwyn.dsahero.json");
+    expect(
+      chooseDataFileName(hero, "Gwyn", { "THORWIN EICHHAUS.dsahero.json": "x", "gwyn.dsahero.json": "y" }, safe),
+    ).toBe("Gwyn (uid-thor).dsahero.json");
+  });
 });
