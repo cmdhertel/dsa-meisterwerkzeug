@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import { App, Notice } from "obsidian";
 import type DsaMeisterwerkzeugPlugin from "../main";
 import { SHARE_BLOCK, registerPlayerBlock } from "./render";
 
@@ -13,11 +13,21 @@ interface PlayerScreenApi {
   sendMarkdown?: (markdown: string, sourcePath: string) => Promise<void>;
 }
 
+/**
+ * The player-screen plugin's API, or null if that plugin is not installed or not enabled.
+ * The only private-API access in the share feature: `app.plugins.plugins` is undocumented, so every level is
+ * optional and the API is checked before use. Keep it here so other code does not repeat the cast.
+ */
+export function playerScreenApi(app: App): PlayerScreenApi | null {
+  const plugins = (app as unknown as { plugins?: { plugins?: Record<string, PlayerScreenApi | undefined> } }).plugins?.plugins;
+  const ps = plugins?.[PLAYER_SCREEN_ID];
+  return ps && typeof ps.sendMarkdown === "function" ? ps : null;
+}
+
 /** Send the live combat view to the "TTRPG Tools - Player Screen" window. */
 export async function shareFight(plugin: DsaMeisterwerkzeugPlugin, markdown: string = SHARE_MARKDOWN): Promise<void> {
-  const plugins = (plugin.app as unknown as { plugins?: { plugins?: Record<string, PlayerScreenApi | undefined> } }).plugins?.plugins;
-  const ps = plugins?.[PLAYER_SCREEN_ID];
-  if (!ps || typeof ps.sendMarkdown !== "function") {
+  const ps = playerScreenApi(plugin.app);
+  if (!ps || !ps.sendMarkdown) {
     new Notice("Das Plugin „TTRPG Tools - Player Screen“ ist nicht installiert oder nicht aktiviert.");
     return;
   }
