@@ -38,18 +38,54 @@ export function normalizeData(raw: unknown): CalendarData {
   return out;
 }
 
+/** Parses the stored file content. `failed` = the file exists but is not valid JSON (never overwrite it). */
+export function parseStored(text: string | null): { data: CalendarData; failed: boolean } {
+  if (text === null) return { data: emptyData(), failed: false };
+  try {
+    return { data: normalizeData(JSON.parse(text)), failed: false };
+  } catch {
+    return { data: emptyData(), failed: true };
+  }
+}
+
+export interface CalendarStateOptions {
+  /** Called once when the stored file could not be loaded (the UI shows a Notice). */
+  onLoadFailed?: () => void;
+}
+
 export class CalendarState {
   data: CalendarData = emptyData();
+  /** the stored file is unreadable or corrupt: writing would destroy it */
+  loadFailed = false;
+  /** in-memory data differs from the stored file */
+  private dirty = false;
   private listeners = new Set<() => void>();
   private timer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private app: App, private path: string) {}
+  constructor(private app: App, private path: string, private opts: CalendarStateOptions = {}) {}
 
   async load(): Promise<void> {
+    let raw: string | null = null;
+    let readOk = true;
     try {
-      if (await this.app.vault.adapter.exists(this.path)) this.data = normalizeData(JSON.parse(await this.app.vault.adapter.read(this.path)));
-    } catch {
-      this.data = emptyData();
+      if (await this.app.vault.adapter.exists(this.path)) raw = await this.app.vault.adapter.read(this.path);
+    } catch (e) {
+      readOk = false;
+      console.error("Kalender: Lesen fehlgeschlagen", e);
+    }
+    const parsed = readOk ? parseStored(raw) : { data: emptyData(), failed: true };
+    this.data = parsed.data;
+    if (parsed.failed) {
+      this.loadFailed = true;
+      if (raw !== null) {
+        // keep the broken file for the GM to recover by hand
+        try {
+          await this.app.vault.adapter.write(`${this.path}.bak`, raw);
+        } catch (e) {
+          console.error("Kalender: Sicherungskopie fehlgeschlagen", e);
+        }
+      }
+      this.opts.onLoadFailed?.();
     }
     this.listeners.forEach((f) => f());
   }
@@ -60,6 +96,7 @@ export class CalendarState {
   }
 
   private changed(): void {
+    this.dirty = true;
     this.listeners.forEach((f) => f());
     if (this.timer) clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.flush(), 300);
@@ -68,9 +105,12 @@ export class CalendarState {
   async flush(): Promise<void> {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
+    if (this.loadFailed || !this.dirty) return;
+    this.dirty = false;
     try {
       await this.app.vault.adapter.write(this.path, JSON.stringify(this.data, null, 2));
     } catch (e) {
+      this.dirty = true;
       console.error("Kalender: Speichern fehlgeschlagen", e);
     }
   }
