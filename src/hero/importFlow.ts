@@ -129,7 +129,9 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
   let newContent = "";
   if (!file) {
     isNew = true;
-    const kamps = app.vault.getMarkdownFiles().filter((f) => app.metadataCache.getFileCache(f)?.frontmatter?.typ === "kampagne");
+    const kamps = app.vault
+      .getMarkdownFiles()
+      .filter((f) => String(app.metadataCache.getFileCache(f)?.frontmatter?.typ ?? "").trim().toLowerCase() === "kampagne");
     // campaign is optional: without any `typ: kampagne` note the hero is created without one
     let kampagne = '""';
     if (kamps.length) {
