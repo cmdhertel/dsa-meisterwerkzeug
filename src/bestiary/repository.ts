@@ -11,6 +11,8 @@ import { NPC_TYPES, extractStatblockYaml, hasCombatStats, normalizeStatblock } f
 export class BestiaryRepository {
   /** NSC note path -> normalized statblock (only notes with combat values) */
   private npcs = new Map<string, Record<string, unknown>>();
+  /** bumped on every change that can alter `files()` or `frontmatter()` */
+  private revision = 0;
 
   constructor(private app: App, private getFolder: () => string) {}
 
@@ -22,12 +24,36 @@ export class BestiaryRepository {
     return path.startsWith(this.folder() + "/");
   }
 
+  /**
+   * Changes whenever the bestiary's content or folder changes. Use it to cache derived data
+   * (e.g. a parsed catalog) and rebuild only when the key differs.
+   */
+  cacheKey(): string {
+    return `${this.revision}|${this.folder()}`;
+  }
+
   /** Keeps the NSC cache current. Call once from onload. */
   register(plugin: Plugin): void {
-    plugin.registerEvent(this.app.metadataCache.on("changed", (file, data) => this.updateNpc(file, data)));
-    plugin.registerEvent(this.app.vault.on("delete", (f: TAbstractFile) => void this.npcs.delete(f.path)));
+    plugin.registerEvent(
+      this.app.metadataCache.on("changed", (file, data) => {
+        this.revision++;
+        this.updateNpc(file, data);
+      }),
+    );
+    plugin.registerEvent(
+      this.app.vault.on("create", () => {
+        this.revision++;
+      }),
+    );
+    plugin.registerEvent(
+      this.app.vault.on("delete", (f: TAbstractFile) => {
+        this.revision++;
+        this.npcs.delete(f.path);
+      }),
+    );
     plugin.registerEvent(
       this.app.vault.on("rename", (f: TAbstractFile, old: string) => {
+        this.revision++;
         const v = this.npcs.get(old);
         this.npcs.delete(old);
         if (v && f instanceof TFile) this.npcs.set(f.path, v);
@@ -73,6 +99,7 @@ export class BestiaryRepository {
         /* unreadable note: skip */
       }
     }
+    this.revision++;
   }
 
   isNpc(path: string): boolean {

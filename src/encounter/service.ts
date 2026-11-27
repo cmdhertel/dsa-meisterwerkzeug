@@ -3,19 +3,28 @@ import type DsaMeisterwerkzeugPlugin from "../main";
 import { campaignOf } from "../cockpit/actions";
 import { heroToCombatant } from "../hero/model";
 import type { Estimate } from "./estimate";
+import { singleSlotCache } from "./cache";
 import {
   CatalogEntry, CatalogIndex, HeroSide, ResolvedEntry, creatureMeta, defaultManualSide, estimateEncounter, indexCatalog, resolveEntries, resolveHelden,
 } from "./build";
 import type { EncounterSpec } from "./parse";
 
+const catalogSlot = singleSlotCache<CatalogEntry[]>();
+
+/**
+ * Parses the whole bestiary. Cached until the repository reports a change (metadata, files, folder setting),
+ * so the card and the builder do not re-parse every note on each render. Callers must not mutate the entries.
+ */
 export function buildCatalog(plugin: DsaMeisterwerkzeugPlugin): CatalogEntry[] {
-  const out: CatalogEntry[] = [];
-  for (const f of plugin.bestiary.files()) {
-    const r = plugin.bestiary.parseFile(f);
-    const fm = plugin.bestiary.frontmatter(f);
-    out.push({ path: f.path, basename: f.basename, name: r.combatant.name, combatant: r.combatant, status: r.status, problems: r.problems, ...creatureMeta(fm) });
-  }
-  return out.sort((a, b) => a.name.localeCompare(b.name, "de"));
+  return catalogSlot(plugin.bestiary.cacheKey(), () => {
+    const out: CatalogEntry[] = [];
+    for (const f of plugin.bestiary.files()) {
+      const r = plugin.bestiary.parseFile(f);
+      const fm = plugin.bestiary.frontmatter(f);
+      out.push({ path: f.path, basename: f.basename, name: r.combatant.name, combatant: r.combatant, status: r.status, problems: r.problems, ...creatureMeta(fm) });
+    }
+    return out.sort((a, b) => a.name.localeCompare(b.name, "de"));
+  });
 }
 
 export interface PartyInfo {
