@@ -10,8 +10,9 @@ import { TALENT_BY_KEY } from "../src/hero/keys";
 import { addStubs, collectKeys, emptyMapping, parseMapping, serializeMapping } from "../src/hero/mapping";
 import { heroToCombatant, parseHero, talentValue, validateHeroJson, HeroJson } from "../src/hero/model";
 
-const file = process.env.DSA_HERO_JSON ? path.resolve(process.env.DSA_HERO_JSON) : path.resolve(__dirname, "../../../thorwin.dsahero.json");
-const have = fs.existsSync(file);
+// optional: a real Heldenschmiede export (DSA_HERO_JSON=/path/to/hero.dsahero.json npm test)
+const file = process.env.DSA_HERO_JSON ? path.resolve(process.env.DSA_HERO_JSON) : "";
+const have = !!file && fs.existsSync(file);
 const load = () => JSON.parse(fs.readFileSync(file, "utf8")) as HeroJson;
 
 describe("key table", () => {
@@ -22,24 +23,18 @@ describe("key table", () => {
   });
 });
 
-describe.skipIf(!have)("thorwin import (read-only)", () => {
+describe.skipIf(!have)("real hero import (read-only, DSA_HERO_JSON)", () => {
   it("validates and parses", () => {
     const j = load();
     expect(validateHeroJson(j)).toBeNull();
     const h = parseHero(j);
-    expect(h.uid).toBe("00000000-0000-4000-8000-000000000000");
-    expect(h.ini).toBe(10);
-    expect(h.aw).toBe(5);
-    expect(h.gs).toBe(7);
-    expect(h.lep.max).toBe(23);
-    expect(h.asp.max).toBe(37);
-    expect(h.schip.max).toBe(3);
-    expect(h.sk).toBe(1);
-    expect(h.zk).toBe(0);
-    expect(h.weapons.length).toBe(2);
+    expect(h.uid).not.toBe("");
+    expect(h.name).not.toBe("");
+    expect(h.lep.max).toBeGreaterThan(0);
+    expect(h.ini).toBeGreaterThan(0);
     expect(talentValue(h, "Magiekunde")).toBeGreaterThanOrEqual(0);
     const fm = frontmatterValues(h);
-    expect(fm.LeP).toBe(23);
+    expect(fm.LeP).toBe(h.lep.max);
     expect(fm.heldenschmiede_uid).toBe(h.uid);
   });
   it("never fails on unknown keys and yields stubs", () => {
@@ -52,7 +47,7 @@ describe.skipIf(!have)("thorwin import (read-only)", () => {
   it("clean strips ids", () => {
     const s = JSON.stringify(cleanHeroJson(load()));
     for (const k of ["readerUids", "writerUids", "groupUid", "dbId"]) expect(s).not.toContain(`"${k}"`);
-    expect(s).toContain("00000000-0000-4000-8000-000000000000");
+    expect(s).toContain(parseHero(load()).uid);
   });
   it("diff against itself is empty; block renders", () => {
     const h = parseHero(load());

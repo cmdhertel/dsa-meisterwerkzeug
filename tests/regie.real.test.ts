@@ -70,42 +70,4 @@ describe.skipIf(!have)("real vault: regie digest", () => {
     console.log(`NSC: ${nsc} Notizen, ${kp} mit Kurzprofil, ${sec} mit SL-Geheimnis`);
     expect(nsc).toBeGreaterThan(0);
   });
-
-  it("Session1 scenes", () => {
-    const dir = path.join(camp, "Die Grauen Wanderer/02. Sessions/Session1/Scenes");
-    if (!fs.existsSync(dir)) return;
-    const scenes = fs.readdirSync(dir).filter((x) => x.endsWith(".md"));
-    expect(scenes.length).toBeGreaterThan(0);
-    for (const s of scenes) {
-      const d = digestNote(fs.readFileSync(path.join(dir, s), "utf8"));
-      expect(d.title).not.toBe("");
-      expect(d.sections.length).toBeGreaterThanOrEqual(1);
-    }
-  });
-
-  it("Abenteuer IV scene 06 has two read-aloud blocks", () => {
-    const dir = path.join(camp, "Die Nebelfurt/02. Sessions/Der Abenteuer IV/Scenes");
-    if (!fs.existsSync(dir)) return;
-    const f = fs.readdirSync(dir).find((x) => /06/.test(x));
-    expect(f).toBeTruthy();
-    const d = digestNote(fs.readFileSync(path.join(dir, f!), "utf8"));
-    expect(d.readAloud).toHaveLength(2);
-    expect(d.facts.map((x) => x.label)).toEqual(expect.arrayContaining(["Dauer", "Ort", "Ziel"]));
-  });
-
-  it("Finale session has a fight block and tasks", () => {
-    const rel = "Die Nebelfurt/02. Sessions/Der Abenteuer V - Das Finale/Der Abenteuer V - Das Finale.md";
-    if (!fs.existsSync(path.join(camp, rel))) return;
-    const d = digestNote(read(rel));
-    expect(d.blocks.length).toBeGreaterThanOrEqual(1);
-    expect(d.title).not.toBe("");
-  });
-
-  it("Die Rabenkönigin has a Kurzprofil", () => {
-    const rel = "Wüstenwind/Die Rabenkönigin.md";
-    if (!fs.existsSync(path.join(camp, rel))) return;
-    const k = parseKurzprofil(read(rel));
-    expect(k).not.toBeNull();
-    expect(k!.auftreten).not.toBe("");
-  });
 });

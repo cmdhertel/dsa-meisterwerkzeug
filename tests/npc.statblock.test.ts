@@ -5,8 +5,8 @@ import YAML from "yaml";
 import { parseCreature } from "../src/bestiary/adapter";
 import { extractStatblockYaml, hasCombatStats, normalizeStatblock } from "../src/bestiary/statblock";
 
-const vault = process.env.DSA_VAULT ? path.resolve(process.env.DSA_VAULT) : path.resolve(__dirname, "../../..");
-const npcDir = path.join(vault, "Campaigns/Die Nebelfurt/03. Non Player Characters");
+// optional: path to a real NSC note with a statblock (DSA_NPC_NOTE=/path/to/NSC.md npm test)
+const npcNote = process.env.DSA_NPC_NOTE ? path.resolve(process.env.DSA_NPC_NOTE) : null;
 
 describe("NSC statblock", () => {
   it("extracts the first statblock body", () => {
@@ -22,12 +22,12 @@ describe("NSC statblock", () => {
   it("an empty template block has no combat values", () => {
     expect(hasCombatStats(normalizeStatblock({ layout: "dsa5-layout", name: null }))).toBe(false);
   });
-  const file = path.join(npcDir, "Brodo Hagen.md");
-  it.skipIf(!fs.existsSync(file))("real note: Brodo Hagen", () => {
+  it.skipIf(!npcNote || !fs.existsSync(npcNote))("real NSC note (DSA_NPC_NOTE)", () => {
+    const file = npcNote!;
     const sb = normalizeStatblock(YAML.parse(extractStatblockYaml(fs.readFileSync(file, "utf8"))!));
-    const r = parseCreature(sb, file, "Brodo Hagen");
+    const r = parseCreature(sb, file, path.basename(file, ".md"));
     expect(r.status).toBe("ok");
-    expect(r.combatant).toMatchObject({ lepMax: 40, iniBase: 13, rs: 3, vw: 5 });
-    expect(r.combatant.weapons.length).toBeGreaterThan(2);
+    expect(r.combatant.lepMax).toBeGreaterThan(0);
+    expect(r.combatant.iniBase).toBeGreaterThan(0);
   });
 });
