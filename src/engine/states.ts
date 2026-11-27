@@ -32,7 +32,7 @@ export function schmerzFromLep(lep: number, lepMax: number): number {
 
 /**
  * Effective levels = stored levels, with Schmerz = min(4, stored Schmerz + LeP-derived Schmerz).
- * (Summing is an assumption: the vault only says "eine Stufe", see report.)
+ * Levels of the same state from different sources add up (decided rule), each state capped at IV.
  */
 export function effectiveLevels(stored: StateLevels, lep: number, lepMax: number, timed: StateLevels = {}): Record<StateId, number> {
   const out = {} as Record<StateId, number>;
