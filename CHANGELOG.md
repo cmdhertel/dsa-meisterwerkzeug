@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4 (2026-11-28)
+
+- Release 1.0.3 hatte keine Dateien (`main.js`, `manifest.json`, `styles.css`) angehängt. Der Release-Workflow hängt sie jetzt auch an Releases an, die vorher in der GitHub-Oberfläche angelegt wurden.
+- Weitere Hinweise aus dem Review des Plugin-Verzeichnisses behoben (Callbacks ohne Promise-Rückgabe, Spielerbildschirm nutzt `createEl`).
+
 ## 1.0.3 (2026-11-28)
 
 - Manifest: Autor ist jetzt „Gian Luca Hertel“.
