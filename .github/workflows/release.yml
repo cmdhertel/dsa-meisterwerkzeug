@@ -27,7 +27,14 @@ jobs:
             main.js
             styles.css
             manifest.json
-      - name: Create release
+      # A release drafted or published in the GitHub UI creates the tag first; attach the assets to it instead of failing.
+      - name: Create release or attach assets
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" main.js manifest.json styles.css --title "${{ github.ref_name }}" --generate-notes
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" main.js manifest.json styles.css --clobber
+          else
+            gh release create "$TAG" main.js manifest.json styles.css --title "$TAG" --generate-notes
+          fi
