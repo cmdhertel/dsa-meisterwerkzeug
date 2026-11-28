@@ -119,12 +119,11 @@ export class DsaSettingTab extends PluginSettingTab {
           {
             name: "Helden neu laden",
             desc: text("Liest Daten-Ordner und Zuordnungsdatei erneut ein."),
-            render: (setting) =>
-              setting.addButton((b) =>
-                b.setButtonText("Neu laden").onClick(async () => {
-                  await plugin.heroes.load();
-                }),
-              ),
+            render: (setting) => {
+              setting.addButton((b) => {
+                b.setButtonText("Neu laden").onClick(() => void plugin.heroes.load());
+              });
+            },
           },
         ],
       },
@@ -134,27 +133,27 @@ export class DsaSettingTab extends PluginSettingTab {
           {
             name: "Kampf-Cockpit: Ansicht",
             desc: text("Kompakt (Seitenleiste), Detail (Vollbild) oder automatisch nach Breite des Cockpits."),
-            render: (setting) =>
+            render: (setting) => {
               setting.addDropdown((d) => {
                 for (const l of LAYOUT_ORDER) d.addOption(l, LAYOUT_LABEL[l]);
-                d.setValue(normalizeLayout(plugin.settings.cockpitLayout)).onChange(async (v) => {
+                d.setValue(normalizeLayout(plugin.settings.cockpitLayout)).onChange((v) => {
                   plugin.settings.cockpitLayout = normalizeLayout(v);
-                  await plugin.persist();
-                  refreshCockpitLayouts(this.app);
+                  void plugin.persist().then(() => refreshCockpitLayouts(this.app));
                 });
-              }),
+              });
+            },
           },
           {
             name: "Trefferzonen",
             desc: text("Nach einem ungeparierten Treffer wird die getroffene Körperzone gewürfelt (oder gezielt gewählt); Zonen-RS und Wundeffekte werden berücksichtigt."),
-            render: (setting) =>
-              setting.addToggle((t) =>
-                t.setValue(plugin.settings.hitZones === true).onChange(async (v) => {
+            render: (setting) => {
+              setting.addToggle((t) => {
+                t.setValue(plugin.settings.hitZones === true).onChange((v) => {
                   plugin.settings.hitZones = v;
-                  await plugin.persist();
-                  refreshCockpitLayouts(this.app);
-                }),
-              ),
+                  void plugin.persist().then(() => refreshCockpitLayouts(this.app));
+                });
+              });
+            },
           },
         ],
       },
@@ -164,25 +163,27 @@ export class DsaSettingTab extends PluginSettingTab {
           {
             name: "Automatische Mitschrift",
             desc: text("Proben, Zauber, Kämpfe, Rasten und Datumswechsel werden mitgeschrieben, solange eine Session läuft. Eigene Einträge und Szenenwechsel bleiben immer erhalten."),
-            render: (setting) =>
-              setting.addToggle((t) =>
-                t.setValue(plugin.settings.regieAutoLog !== false).onChange(async (v) => {
+            render: (setting) => {
+              setting.addToggle((t) => {
+                t.setValue(plugin.settings.regieAutoLog !== false).onChange((v) => {
                   plugin.settings.regieAutoLog = v;
-                  await plugin.persist();
-                }),
-              ),
+                  void plugin.persist();
+                });
+              });
+            },
           },
           {
             name: "Offene Geheimnisse aus früheren Sessions",
             desc: text("So viele frühere Sessions der Kampagne werden nach offenen Geheimnissen durchsucht (0 = nur die aktuelle Session)."),
-            render: (setting) =>
+            render: (setting) => {
               setting.addDropdown((d) => {
                 for (const n of [0, 1, 3, 5, 10]) d.addOption(String(n), String(n));
-                d.setValue(String(plugin.settings.regieEarlierSessions ?? 5)).onChange(async (v) => {
+                d.setValue(String(plugin.settings.regieEarlierSessions ?? 5)).onChange((v) => {
                   plugin.settings.regieEarlierSessions = Number(v) || 0;
-                  await plugin.persist();
+                  void plugin.persist();
                 });
-              }),
+              });
+            },
           },
         ],
       },

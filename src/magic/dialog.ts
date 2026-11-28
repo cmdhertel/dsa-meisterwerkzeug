@@ -6,6 +6,7 @@ import { Caster, findKnown } from "./casters";
 import { magicRepo } from "./repository";
 import { CastInput, CastResult, canAfford, castEventText, energyOf, fullCost, resolveCast } from "./resolve";
 import { SpellDef, SpellKind, findSpell } from "./spells";
+import { asyncHandler } from "../util";
 
 export interface CastDialogOptions {
   casterName?: string;
@@ -143,12 +144,12 @@ export class CastModal extends Modal {
         .addOption("zauber", "Zauber")
         .addOption("liturgie", "Liturgie")
         .setValue(this.kind)
-        .onChange(async (v) => {
+        .onChange(asyncHandler(async (v: string) => {
           this.kind = v as SpellKind;
           this.titleEl.setText(this.kind === "zauber" ? "Zauber wirken" : "Liturgie wirken");
           await this.pickSpell(this.spellName);
           this.renderForm();
-        }),
+        })),
     );
 
     new Setting(el).setName("Wirkender").addDropdown((d) => {
@@ -157,11 +158,11 @@ export class CastModal extends Modal {
       const creatures = this.casters.filter((c) => c.kind === "creature");
       for (const c of heroes) d.addOption(c.id, c.label);
       for (const c of creatures) d.addOption(c.id, `${c.label} (Bestiarium)`);
-      d.setValue(this.caster?.id ?? NO_CASTER).onChange(async (v) => {
+      d.setValue(this.caster?.id ?? NO_CASTER).onChange(asyncHandler(async (v: string) => {
         this.caster = this.casters.find((c) => c.id === v) ?? null;
         await this.pickSpell(this.spellName);
         this.renderForm();
-      });
+      }));
     });
 
     new Setting(el)

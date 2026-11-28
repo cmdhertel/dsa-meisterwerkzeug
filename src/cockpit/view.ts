@@ -608,10 +608,10 @@ export class CockpitView extends ItemView {
     if (this.mode === "kompakt") {
       menu.addSeparator();
       menu.addItem((i) => i.setTitle("Effekt hinzufügen").setIcon("plus").onClick(() => new EffectModal(this.app, this.plugin.combat, e.id, null).open()));
-      menu.addItem((i) => i.setTitle("INI-Wurf ändern").setIcon("dices").onClick(async () => {
+      menu.addItem((i) => i.setTitle("INI-Wurf ändern").setIcon("dices").onClick(asyncHandler(async () => {
         const v = await promptNumber(this.app, `${e.name}: INI-Wurf (1W6)`, "Gewürfelter Wert", e.iniRoll ?? 1, 0);
         if (v !== null) this.plugin.combat.setInitiativeRoll(e.id, v);
-      }));
+      })));
       if (e.kind !== "hero")
         menu.addItem((i) => i.setTitle(e.hidden ? "Für Spieler zeigen" : "Vor Spielern verbergen").setIcon(e.hidden ? "eye" : "eye-off").onClick(() => this.toggleHidden(e)));
       menu.addItem((i) => i.setTitle("Entfernen").setIcon("x").onClick(() => void this.removeEntry(e)));

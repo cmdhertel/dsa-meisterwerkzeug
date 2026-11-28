@@ -11,6 +11,7 @@ import { openEncounterBuilder } from "../encounter";
 import { ProbeModal } from "../probe/command";
 import type { RegieCtx } from "./ctx";
 import { formatClock, sessionElapsed } from "./run";
+import { asyncHandler } from "../util";
 
 export interface HeaderApi {
   /** re-read everything (session, run state, date) */
@@ -76,12 +77,12 @@ export function buildHeader(host: HTMLElement, ctx: RegieCtx): HeaderApi {
         .setTitle("Mitschrift zurücksetzen")
         .setIcon("trash-2")
         .setDisabled(!s)
-        .onClick(async () => {
+        .onClick(asyncHandler(async () => {
           if (s && (await confirm(ctx.app, "Mitschrift zurücksetzen", "Alle Einträge, Szenenstatus und die Uhr dieser Session werden gelöscht. Die Session-Notiz bleibt unverändert.", "Zurücksetzen"))) {
             ctx.regie.reset(s);
             new Notice("Mitschrift zurückgesetzt.");
           }
-        }),
+        })),
     );
     m.showAtMouseEvent(ev);
   });

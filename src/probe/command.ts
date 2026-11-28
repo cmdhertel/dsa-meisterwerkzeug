@@ -77,12 +77,12 @@ export class ProbeModal extends Modal {
     });
     const manualBox = this.contentEl.createDiv({ cls: "dsa-probe-manual" });
     manualBox.toggle(selValue === "manual");
-    ["Eigenschaft 1", "Eigenschaft 2", "Eigenschaft 3"].forEach((l, i) =>
+    ["Eigenschaft 1", "Eigenschaft 2", "Eigenschaft 3"].forEach((l, i) => {
       new Setting(manualBox).setName(l).addText((t) => {
         t.inputEl.type = "number";
         t.setValue("12").onChange((v) => (manual.attrs[i] = Number(v) || 0));
-      }),
-    );
+      });
+    });
     new Setting(manualBox).setName("FW").addText((t) => {
       t.inputEl.type = "number";
       t.setValue("0").onChange((v) => (manual.fw = Math.max(0, Number(v) || 0)));
