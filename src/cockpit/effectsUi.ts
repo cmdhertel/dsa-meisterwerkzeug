@@ -153,7 +153,7 @@ export class EffectModal extends Modal {
     if (isFree) new Setting(el).setName("Name").addText((t) => t.setValue(this.name).setPlaceholder("z. B. Gift, Segen, Netz").onChange((v) => (this.name = v)));
     if (kind === "z") {
       new Setting(el).setName("Stufe").addDropdown((d) => {
-        [1, 2, 3, 4].forEach((n) => d.addOption(String(n), ROMAN[n]));
+        for (const n of [1, 2, 3, 4]) d.addOption(String(n), ROMAN[n]);
         d.setValue(String(this.level || 1)).onChange((v) => {
           this.level = Number(v);
           hint.setText(STATE_LEVEL_TEXT[this.choice.slice(2) as StateId][this.level]);

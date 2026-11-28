@@ -271,12 +271,12 @@ export class ManualModal extends Modal {
     this.titleEl.setText("Probe ohne Held");
     const attrs = [...ManualModal.last.attrs] as [number, number, number];
     let fw = ManualModal.last.fw;
-    this.labels.forEach((l, i) =>
+    this.labels.forEach((l, i) => {
       new Setting(this.contentEl).setName(l).addText((t) => {
         t.inputEl.type = "number";
         t.setValue(String(attrs[i])).onChange((v) => (attrs[i] = Number(v) || 0));
-      }),
-    );
+      });
+    });
     new Setting(this.contentEl).setName("Fertigkeitswert (FW)").addText((t) => {
       t.inputEl.type = "number";
       t.setValue(String(fw)).onChange((v) => (fw = Math.max(0, Number(v) || 0)));

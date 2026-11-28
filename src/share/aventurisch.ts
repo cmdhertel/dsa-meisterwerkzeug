@@ -13,7 +13,6 @@ export interface VNode {
   svg?: boolean;
 }
 
-const SVG_NS = "http://www.w3.org/2000/svg";
 
 const h = (tag: string, cls?: string, children: (VNode | null | false)[] = [], text?: string, attrs?: Record<string, string>): VNode => ({
   tag,
@@ -133,15 +132,15 @@ export function toHtml(n: VNode): string {
   return `<${n.tag}${a}>${n.text ? esc(n.text) : ""}${(n.children ?? []).map(toHtml).join("")}</${n.tag}>`;
 }
 
-function mount(doc: Document, parent: Element, n: VNode): void {
-  const el = n.svg ? doc.createElementNS(SVG_NS, n.tag) : doc.createElement(n.tag);
+function mount(parent: Element, n: VNode): void {
+  // Obsidian's createEl/createSvg create the node in the parent's own document (popout-safe) and append it.
+  const el = n.svg ? parent.createSvg(n.tag as keyof SVGElementTagNameMap) : parent.createEl(n.tag as keyof HTMLElementTagNameMap);
   if (n.cls) el.setAttribute("class", n.cls);
   for (const [k, v] of Object.entries(n.attrs ?? {})) el.setAttribute(k, v);
   const setProps = (el as Partial<HTMLElement>).setCssProps;
   if (n.props && setProps) setProps.call(el, n.props);
   if (n.text) el.textContent = n.text;
-  parent.appendChild(el);
-  for (const c of n.children ?? []) mount(doc, el, c);
+  for (const c of n.children ?? []) mount(el, c);
 }
 
 /** DOM rendering (popout-safe: uses the element's own document). */
@@ -149,5 +148,5 @@ export function renderAventurisch(el: HTMLElement, view: PlayerView): void {
   el.empty();
   el.removeClass("dsa-ps");
   el.addClass("dsa-psa");
-  mount(el.ownerDocument, el, buildAventurischTree(view));
+  mount(el, buildAventurischTree(view));
 }

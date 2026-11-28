@@ -205,7 +205,7 @@ export function pickHeroes(app: App, heroes: HeroChoice[], onlyManualLabel = "Ma
     if (campaigns.length) {
       new Setting(el).setName("Kampagne").addDropdown((d) => {
         d.addOption("", "Alle");
-        campaigns.forEach((c) => d.addOption(c, c));
+        for (const c of campaigns) d.addOption(c, c);
         d.onChange((v) => {
           filter = v;
           render();
