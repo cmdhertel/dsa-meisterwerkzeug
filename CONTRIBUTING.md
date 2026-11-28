@@ -8,10 +8,11 @@ Danke fürs Mitmachen! / Thanks for helping out.
 npm ci
 npm test
 npm run typecheck
+npm run lint
 npm run build
 ```
 
-Requires Node 20+. `npm run dev` watches and rebuilds; set `OBSIDIAN_PLUGIN_DIR` to a vault plugin folder to load it live in Obsidian.
+Requires Node 20+. `npm run lint` runs ESLint with `eslint-plugin-obsidianmd`, the same rules the Obsidian plugin review checks; CI runs it too. TypeScript stays on 6.x because typescript-eslint does not support TypeScript 7 yet. `npm run dev` watches and rebuilds; set `OBSIDIAN_PLUGIN_DIR` to a vault plugin folder to load it live in Obsidian.
 
 ## Layout
 
