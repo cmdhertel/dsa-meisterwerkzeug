@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 (2026-11-28)
+
+- Manifest: Autor ist jetzt „Gian Luca Hertel“.
+
 ## 1.0.2 (2026-11-28)
 
 Anpassungen an das Review des Obsidian-Plugin-Verzeichnisses:
