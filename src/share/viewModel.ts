@@ -1,7 +1,7 @@
 // Pure mapping: combat state + share options -> what the players may see. No Obsidian imports.
 import type { CombatEntry, CombatState } from "../combat/store";
 import { effectLabel, effectsOf, incapacitatingStatus, timedStateLevels } from "../engine/effects";
-import { STATE_IDS, STATE_LABELS, StateId, effectiveLevels, incapacitatedBy, isDying } from "../engine/states";
+import { STATE_IDS, STATE_LABELS, effectiveLevels, incapacitatedBy, isDying } from "../engine/states";
 import { sortInitiative } from "../engine/initiative";
 
 export type EnemyLepMode = "wort" | "balken" | "exakt" | "aus";
@@ -132,7 +132,7 @@ export function buildPlayerView(state: Pick<CombatState, "round" | "currentId" |
     const down = isDying(e.lep) || incapacitatedBy(levels).length > 0 || incapacitatingStatus(fx).length > 0;
     const pct = e.lepMax > 0 ? Math.max(0, Math.min(100, (e.lep / e.lepMax) * 100)) : 0;
     const chips: PlayerStateChip[] = [];
-    for (const id of STATE_IDS as StateId[]) {
+    for (const id of STATE_IDS) {
       if (id === "schmerz") continue;
       const lv = e.states[id] ?? 0;
       if (lv > 0) chips.push({ label: STATE_LABELS[id], level: lv });

@@ -16,8 +16,6 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-const read = (rel: string) => fs.readFileSync(path.join(camp, rel), "utf8");
-
 describe.skipIf(!have)("real vault: regie digest", () => {
   const files = have ? walk(camp) : [];
 

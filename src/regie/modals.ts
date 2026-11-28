@@ -8,6 +8,7 @@ import type { SessionInfo } from "./vault";
 import { calendarOf } from "../calendar/state";
 import { formatDate } from "../calendar/engine";
 import { campaignName } from "./vault";
+import { asyncHandler } from "../util";
 
 export class SessionPicker extends FuzzySuggestModal<SessionInfo> {
   constructor(app: App, private items: SessionInfo[], private running: string | null, private onPick: (s: SessionInfo) => void) {
@@ -62,7 +63,7 @@ export class QuickNoteModal extends Modal {
     const row = this.contentEl.createDiv({ cls: "dsa-regie-modal-actions" });
     row.createEl("button", { text: "Hinzufügen", cls: "mod-cta" }).addEventListener("click", submit);
     row.createEl("button", { text: "Abbrechen" }).addEventListener("click", () => this.close());
-    setTimeout(() => area.focus(), 0);
+    window.setTimeout(() => area.focus(), 0);
   }
   onClose(): void {
     this.contentEl.empty();
@@ -110,7 +111,7 @@ export class MitschriftModal extends Modal {
     const row = this.contentEl.createDiv({ cls: "dsa-regie-modal-actions" });
     const write = row.createEl("button", { text: "In Session-Notiz schreiben", cls: "mod-cta" });
     write.disabled = !file;
-    write.addEventListener("click", async () => {
+    write.addEventListener("click", asyncHandler(async () => {
       if (!file) return;
       try {
         await this.app.vault.process(file, (t) => upsertMitschrift(t, md));
@@ -121,15 +122,15 @@ export class MitschriftModal extends Modal {
         console.error("Sitzungsregie: Schreiben fehlgeschlagen", e);
         new Notice("Mitschrift konnte nicht geschrieben werden.");
       }
-    });
-    row.createEl("button", { text: "In Zwischenablage kopieren" }).addEventListener("click", async () => {
+    }));
+    row.createEl("button", { text: "In Zwischenablage kopieren" }).addEventListener("click", asyncHandler(async () => {
       try {
         await navigator.clipboard.writeText(md);
         new Notice("Mitschrift kopiert.");
       } catch {
         new Notice("Kopieren nicht möglich.");
       }
-    });
+    }));
     row.createEl("button", { text: "Abbrechen" }).addEventListener("click", () => this.close());
   }
   onClose(): void {

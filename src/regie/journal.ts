@@ -1,6 +1,6 @@
 // Sitzungsregie: renders the journal ("Mitschrift") as markdown and writes it into the session note (pure).
 import { KIND_LABEL, formatDuration } from "./run";
-import type { JournalEntry, JournalKind, SessionRun } from "./run";
+import type { JournalKind, SessionRun } from "./run";
 
 export const BLOCK_START = "%% dsa-mitschrift:start %%";
 export const BLOCK_END = "%% dsa-mitschrift:end %%";

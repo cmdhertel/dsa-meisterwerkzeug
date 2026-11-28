@@ -54,7 +54,7 @@ export function buildJournalPanel(host: HTMLElement, ctx: RegieCtx): JournalApi 
     const row = li.createDiv({ cls: "dsa-regie-entry-actions is-open" });
     row.createEl("button", { text: "Speichern", cls: "dsa-regie-btn mod-primary", attr: { type: "button" } }).addEventListener("click", save);
     row.createEl("button", { text: "Abbrechen", cls: "dsa-regie-btn", attr: { type: "button" } }).addEventListener("click", cancel);
-    setTimeout(() => area.focus(), 0);
+    window.setTimeout(() => area.focus(), 0);
   };
 
   const render = () => {

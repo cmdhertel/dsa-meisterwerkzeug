@@ -8,6 +8,7 @@ import { addStubs, collectKeys, parseMapping, serializeMapping } from "./mapping
 import { Hero, HeroJson, parseHero, validateHeroJson } from "./model";
 import { ExistingHeroNote, assignmentWarnings, chooseDataFileName, findCandidates } from "./assign";
 import { NEW_HERO, pick, previewModal, promptText, targetModal } from "./modals";
+import { valueText } from "../valueText";
 
 /** Walk the vault via the adapter (fallback if the file index does not know .json files). */
 async function walkJson(plugin: DsaMeisterwerkzeugPlugin, root = ""): Promise<string[]> {
@@ -100,17 +101,17 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
   const mappingBroken = mapping === null;
   if (!mapping) mapping = parseMapping("{}")!;
 
-  const cleaned = cleanHeroJson(json) as HeroJson;
+  const cleaned = cleanHeroJson(json);
   const hero: Hero = parseHero(cleaned, mapping);
-  const character = (cleaned.character ?? {}) as Record<string, unknown>;
+  const character = cleaned.character ?? {};
   const stubbed = addStubs(mapping, collectKeys(character));
 
   // choose target note: automatic match is preselected, every other hero note can be picked
   const notes: ExistingHeroNote[] = app.vault
     .getMarkdownFiles()
-    .map((f) => ({ f, fm: app.metadataCache.getFileCache(f)?.frontmatter as Record<string, unknown> | undefined }))
+    .map((f) => ({ f, fm: app.metadataCache.getFileCache(f)?.frontmatter }))
     .filter((x) => String(x.fm?.typ ?? "").toLowerCase() === "sc")
-    .map((x) => ({ path: x.f.path, basename: x.f.basename, uid: typeof x.fm?.heldenschmiede_uid === "string" ? (x.fm.heldenschmiede_uid as string) : undefined }));
+    .map((x) => ({ path: x.f.path, basename: x.f.basename, uid: typeof x.fm?.heldenschmiede_uid === "string" ? x.fm.heldenschmiede_uid : undefined }));
   const cands = findCandidates(hero, notes);
   const chosen = await targetModal(app, hero.name, cands.map((c) => ({ label: c.label, path: c.note.path, auto: c.auto })));
   if (chosen === null) return;
@@ -160,7 +161,7 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
     if (!ok) return;
     file = await app.vault.create(path, newContent);
     // Spieler key (existing convention: case-insensitive; template uses lowercase)
-    await app.fileManager.processFrontMatter(file, (fm) => {
+    await app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
       const key = Object.keys(fm).find((k) => k.toLowerCase() === "spieler") ?? "spieler";
       fm[key] = spieler;
     });
@@ -169,7 +170,7 @@ export async function importHero(plugin: DsaMeisterwerkzeugPlugin): Promise<void
   }
 
   // existing note: diff
-  const fmCache = app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+  const fmCache = app.metadataCache.getFileCache(file)?.frontmatter;
   const dataFolder = s.heroDataFolder.replace(/\/+$/, "");
   const dataName = await resolveDataName(plugin, hero, file.basename);
   let prevText: string | null;
@@ -215,7 +216,7 @@ async function resolveDataName(plugin: DsaMeisterwerkzeugPlugin, hero: Hero, not
       for (const p of (await app.vault.adapter.list(folder)).files.filter((f) => f.endsWith(".dsahero.json"))) {
         let uid = "";
         try {
-          uid = String((JSON.parse(await app.vault.adapter.read(p)) as HeroJson).character?.uid ?? "");
+          uid = valueText((JSON.parse(await app.vault.adapter.read(p)) as HeroJson).character?.uid);
         } catch {
           /* unreadable: counts as occupied */
         }
@@ -240,7 +241,7 @@ async function finish(
   const s = plugin.settings;
   // 1. frontmatter (only the import's keys; existing key spelling is kept case-insensitively)
   const values = frontmatterValues(hero);
-  await app.fileManager.processFrontMatter(file, (fm) => {
+  await app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
     for (const [k, v] of Object.entries(values)) {
       const existing = Object.keys(fm).find((x) => x.toLowerCase() === k.toLowerCase());
       fm[existing ?? k] = v;

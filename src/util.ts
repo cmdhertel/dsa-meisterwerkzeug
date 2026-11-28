@@ -1,5 +1,5 @@
-import { normalizePath } from "obsidian";
-import type { App } from "obsidian";
+import { normalizePath, requireApiVersion } from "obsidian";
+import type { App, ButtonComponent } from "obsidian";
 
 export { safeFileName } from "./fileName";
 
@@ -34,3 +34,18 @@ export async function writeText(app: App, path: string, text: string): Promise<v
 }
 
 export const dirname = (p: string): string => (p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : "");
+
+/** Wraps an async callback for DOM listeners and other slots that expect a void return; rejections are logged. */
+export function asyncHandler<A extends unknown[]>(fn: (...args: A) => Promise<unknown>): (...args: A) => void {
+  return (...args) => {
+    fn(...args).catch((e: unknown) => console.error("DSA Meisterwerkzeug:", e));
+  };
+}
+
+/** Styles a button as destructive: setDestructive() on Obsidian 1.13+, the older warning style before. */
+export function markDestructive(b: ButtonComponent): ButtonComponent {
+  if (requireApiVersion("1.13.0")) return b.setDestructive();
+  // Obsidian < 1.13 has no setDestructive(); mod-warning is the class the older setWarning() adds.
+  b.buttonEl.addClass("mod-warning");
+  return b;
+}

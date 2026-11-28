@@ -61,7 +61,7 @@ export function renameInData(data: RegieData, from: string, to: string): RegieDa
 export class RegieState {
   data: RegieData = emptyRegieData();
   private listeners = new Set<(sessionPath: string | null) => void>();
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private timer: number | null = null;
   private dirty = false;
   /** Set when the file existed but could not be read or parsed; flush() then refuses to overwrite it. */
   loadFailed = false;
@@ -114,12 +114,12 @@ export class RegieState {
   private changed(path: string | null): void {
     this.emit(path);
     this.dirty = true;
-    if (this.timer) clearTimeout(this.timer);
-    this.timer = setTimeout(() => void this.flush(), 400);
+    if (this.timer) window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => void this.flush(), 400);
   }
 
   async flush(): Promise<void> {
-    if (this.timer) clearTimeout(this.timer);
+    if (this.timer) window.clearTimeout(this.timer);
     this.timer = null;
     if (!this.dirty) return;
     if (!mayWrite(this.loadFailed)) {

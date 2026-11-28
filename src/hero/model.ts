@@ -3,7 +3,7 @@ import { COMBAT_TECHNIQUE_BASE } from "../engine/constants";
 import { tryParseDice } from "../engine/dice";
 import { ATTR_KEYS, Attributes, AttrKey } from "../engine/types";
 import type { Combatant, Weapon } from "../model";
-import { TALENT_BY_KEY, talentByKey, talentByName } from "./keys";
+import { talentByKey, talentByName } from "./keys";
 import { ArmorEntry, HeroMapping, WeaponEntry, emptyMapping, lookupName } from "./mapping";
 
 export const HERO_SCHEMA = "dsa-heldenschmiede-character";
@@ -92,7 +92,7 @@ export function validateHeroJson(json: unknown): string | null {
 
 /** Never throws on unknown keys; call validateHeroJson first for structural problems. */
 export function parseHero(json: HeroJson, mapping: HeroMapping = emptyMapping()): Hero {
-  const c = (json.character ?? {}) as Record<string, unknown>;
+  const c = json.character ?? {};
 
   const attributes = {} as Attributes;
   for (const k of ATTR_KEYS) attributes[k] = 0;

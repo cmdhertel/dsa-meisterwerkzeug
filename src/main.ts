@@ -53,8 +53,9 @@ export default class DsaMeisterwerkzeugPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => void this.heroes.load());
   }
 
-  async onunload() {
-    await this.combat?.flush();
+  onunload() {
+    // Obsidian does not await onunload; the pending combat save still completes.
+    void this.combat?.flush();
   }
 
   /** Save settings + combat state in one data.json. */

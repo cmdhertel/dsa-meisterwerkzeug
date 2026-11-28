@@ -299,7 +299,7 @@ describe("reassignZone", () => {
     expect(r0.zone?.zone).toBe("torso");
     expect(r0.damage?.dealt).toBe(7);
     const p = params({ zones });
-    const r1 = reassignZone(r0, p as never, "kopf");
+    const r1 = reassignZone(r0, p, "kopf");
     expect(r1.allRolls).toEqual(r0.allRolls);
     expect(r1.damage?.tpRoll).toEqual(r0.damage?.tpRoll);
     expect(r1.damage).toMatchObject({ tpTotal: 10, rs: 0, dealt: 10 });
@@ -313,11 +313,11 @@ describe("reassignZone", () => {
     const r0 = resolveAttack(p, fixedRoller([10, 15, 5, 5, 3]));
     expect(r0.outcome).toBe("hit");
     expect(r0.patch.changes[0].defensesDelta).toBe(1);
-    const r1 = reassignZone(r0, p as never, "armL");
+    const r1 = reassignZone(r0, p, "armL");
     expect(r1.damage?.dealt).toBe(0);
     expect(r1.patch.changes[0]).toMatchObject({ id: "d", defensesDelta: 1, lastHit: { zone: "armL", sp: 0, wound: false } });
     expect(r1.patch.changes[0].lepDelta).toBeUndefined();
-    const back = reassignZone(r1, p as never, "torso");
+    const back = reassignZone(r1, p, "torso");
     expect(back.damage?.dealt).toBe(r0.damage?.dealt);
     expect(back.patch.changes[0].lepDelta).toBe(r0.patch.changes[0].lepDelta);
   });
@@ -390,7 +390,7 @@ describe("zone damage tracking", () => {
   it("old saves without the field load; broken values are sanitised", () => {
     const { s, id } = mkStore();
     s.bookZoneDamage(id, "kopf", 3);
-    const data = JSON.parse(JSON.stringify(s.state));
+    const data = JSON.parse(JSON.stringify(s.state)) as { entries: Record<string, unknown>[] };
     const t = new CombatStore();
     t.load(data);
     expect(t.get(id)?.zoneDamage).toEqual({ kopf: { sp: 3, hits: 0, wounds: 0 } });

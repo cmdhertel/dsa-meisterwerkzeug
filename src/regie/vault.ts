@@ -10,7 +10,7 @@ import { compareScenes, dateKey, imageTarget, linkList, localDateKey, parseScene
 
 type Fm = Record<string, unknown>;
 
-export const fmOf = (app: App, path: string): Fm | undefined => app.metadataCache.getCache(path)?.frontmatter as Fm | undefined;
+export const fmOf = (app: App, path: string): Fm | undefined => app.metadataCache.getCache(path)?.frontmatter;
 const typOf = (fm: Fm | undefined): string => (typeof fm?.typ === "string" ? fm.typ.trim().toLowerCase() : "");
 const str = (v: unknown): string => (typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : "");
 

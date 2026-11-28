@@ -6,6 +6,7 @@ import { Effect, EffectTick, NewEffect, durationText, effectLabel, effectsOf } f
 import { STATE_IDS, STATE_LABELS, STATE_LEVEL_TEXT, StateId, clampLevel } from "../engine/states";
 import { tryParseDice } from "../engine/dice";
 import { ROMAN } from "./logic";
+import { markDestructive } from "../util";
 
 const toInt = (s: string): number | null => {
   const t = s.trim().replace(",", ".");
@@ -179,7 +180,7 @@ export class EffectModal extends Modal {
     const err = el.createEl("p", { cls: "dsa-cp-error" });
     const btns = new Setting(el);
     btns.addButton((b) => b.setButtonText(this.existing ? "Speichern" : "Hinzufügen").setCta().onClick(() => this.save(err)));
-    if (this.existing) btns.addButton((b) => b.setButtonText("Entfernen").setWarning().onClick(() => {
+    if (this.existing) btns.addButton((b) => markDestructive(b.setButtonText("Entfernen")).onClick(() => {
       this.store.removeEffect(this.entryId, (this.existing as Effect).id);
       this.close();
     }));

@@ -15,7 +15,7 @@ export function pick<T>(app: App, items: T[], label: (t: T) => string, placehold
         resolve(t);
       }
       onClose() {
-        setTimeout(() => {
+        window.setTimeout(() => {
           if (!done) resolve(null);
         }, 0);
       }

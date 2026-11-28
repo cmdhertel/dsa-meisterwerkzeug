@@ -40,7 +40,7 @@ describe("weapon parsing", () => {
   });
   it("never throws on junk", () => {
     expect(parseCreature(null, "x.md", "X").status).toBe("nostats");
-    expect(() => parseCreature({ lep: {}, ini: [], attacks: [1, null, "x"] } as never, "x.md", "X")).not.toThrow();
+    expect(() => parseCreature({ lep: {}, ini: [], attacks: [1, null, "x"] }, "x.md", "X")).not.toThrow();
   });
 });
 

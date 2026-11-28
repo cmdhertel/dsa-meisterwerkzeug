@@ -74,7 +74,7 @@ describe("Migration", () => {
   it("load() ergänzt effects bei altem Stand", () => {
     const s = new CombatStore();
     s.addCombatant(mk("Ork"));
-    const old = JSON.parse(JSON.stringify(s.state));
+    const old = JSON.parse(JSON.stringify(s.state)) as { entries: Record<string, unknown>[] };
     for (const e of old.entries) delete e.effects;
     const t = new CombatStore();
     t.load(old);

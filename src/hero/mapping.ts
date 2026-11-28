@@ -162,7 +162,7 @@ export function collectKeys(character: Record<string, unknown>): Record<MappingC
  * Returns the new mapping (a copy) and the list of added "category/key" ids.
  */
 export function addStubs(mapping: HeroMapping, keys: Record<MappingCategory, number[]>): { mapping: HeroMapping; added: string[] } {
-  const next: HeroMapping = JSON.parse(JSON.stringify(mapping));
+  const next: HeroMapping = structuredClone(mapping);
   const added: string[] = [];
   for (const cat of MAPPING_CATEGORIES) {
     const sec = next[cat] as Record<string, unknown>;

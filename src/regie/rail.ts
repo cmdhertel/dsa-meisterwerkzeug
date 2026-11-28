@@ -108,7 +108,7 @@ export function buildRail(host: HTMLElement, ctx: RegieCtx): RailApi {
   };
 
   const render = () => {
-    const focused = host.contains(document.activeElement) ? (document.activeElement as HTMLElement).closest<HTMLElement>(".dsa-regie-rail-item")?.dataset.key : undefined;
+    const focused = host.contains(host.ownerDocument.activeElement) ? (host.ownerDocument.activeElement as HTMLElement).closest<HTMLElement>(".dsa-regie-rail-item")?.dataset.key : undefined;
     host.empty();
     const s = ctx.session();
     if (!s) {

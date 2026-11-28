@@ -218,7 +218,7 @@ export function activateScene(run: SessionRun, path: string, title: string, now:
 
 export function setSceneStatus(run: SessionRun, path: string, status: SceneStatus, now: number): SessionRun {
   const r = clone(run);
-  const cur = r.scenes[path] ?? { status: "offen" as SceneStatus, ms: 0, since: null };
+  const cur = r.scenes[path] ?? { status: "offen", ms: 0, since: null };
   r.scenes[path] = cur;
   // Setting another scene to "läuft" must stop the clock of the previously active scene (no double counting).
   if (r.activeScene && r.activeScene !== path) stopClock(r, r.activeScene, now, "gespielt");

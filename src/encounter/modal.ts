@@ -3,7 +3,7 @@ import { MarkdownView, Modal, Notice } from "obsidian";
 import type DsaMeisterwerkzeugPlugin from "../main";
 import { CatalogEntry, indexCatalog, lookupCreature } from "./build";
 import { loadEncounter } from "./load";
-import { EncounterEntry, EncounterSpec, emptySpec, parseCountText, splitHelden, toBlock } from "./parse";
+import { EncounterSpec, emptySpec, parseCountText, splitHelden, toBlock } from "./parse";
 import { renderEstimatePanel } from "./panel";
 import { buildCatalog, evaluate, heroRefs, resolveParty } from "./service";
 import { DEFAULT_PARTY } from "./estimate";
@@ -233,8 +233,8 @@ export class EncounterBuilderModal extends Modal {
         });
         top.createSpan({ text: cat ? "ohne Wertekasten" : "eigener Gegner", cls: "dsa-mw-muted" });
       } else {
-        top.createSpan({ text: cat!.name, cls: "dsa-enc-creature-label" });
-        if (cat!.anzahl) top.createEl("small", { text: `Anzahl lt. Bestiarium: ${cat!.anzahl}`, cls: "dsa-mw-muted" });
+        top.createSpan({ text: cat.name, cls: "dsa-enc-creature-label" });
+        if (cat.anzahl) top.createEl("small", { text: `Anzahl lt. Bestiarium: ${cat.anzahl}`, cls: "dsa-mw-muted" });
       }
       const rm = top.createEl("button", { text: "✕", cls: "dsa-enc-remove", attr: { title: "Entfernen" } });
       rm.addEventListener("click", () => {

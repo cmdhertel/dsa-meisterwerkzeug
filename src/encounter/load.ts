@@ -6,6 +6,7 @@ import type DsaMeisterwerkzeugPlugin from "../main";
 import { CatalogEntry, resolveEntries, rollCounts, indexCatalog } from "./build";
 import type { EncounterSpec } from "./parse";
 import { resolveParty } from "./service";
+import { markDestructive } from "../util";
 
 type Choice = "add" | "replace" | "cancel";
 
@@ -23,7 +24,7 @@ function askExisting(plugin: DsaMeisterwerkzeugPlugin, n: number): Promise<Choic
         this.contentEl.createEl("p", { text: `Im Cockpit stehen schon ${n} Kämpfer. Begegnung hinzufügen oder den Kampf ersetzen?` });
         new Setting(this.contentEl)
           .addButton((b) => b.setButtonText("hinzufügen").setCta().onClick(() => finish("add", this)))
-          .addButton((b) => b.setButtonText("ersetzen").setWarning().onClick(() => finish("replace", this)))
+          .addButton((b) => markDestructive(b.setButtonText("ersetzen")).onClick(() => finish("replace", this)))
           .addButton((b) => b.setButtonText("abbrechen").onClick(() => finish("cancel", this)));
       }
       onClose() {

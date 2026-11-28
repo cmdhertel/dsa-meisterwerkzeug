@@ -5,6 +5,7 @@ import type { Combatant, Weapon } from "../model";
 import { DEFAULT_FALLBACK, DEFAULT_PARTY, Estimate, FallbackStats, Unit, diceAverage, estimate, manualPartyUnit, unitFromCombatant } from "./estimate";
 import type { EncounterEntry, EncounterSpec } from "./parse";
 import { splitHelden } from "./parse";
+import { valueText } from "../valueText";
 
 // ------------------------------------------------------------------ bestiary catalog
 
@@ -30,7 +31,7 @@ export function creatureMeta(fm: Record<string, unknown> | null | undefined): { 
   const tags = Array.isArray(f.tags) ? f.tags.map((t) => String(t)) : typeof f.tags === "string" ? [f.tags] : [];
   const a = typeof f.aktionen === "number" ? f.aktionen : typeof f.aktionen === "string" && /^\s*\d+\s*$/.test(f.aktionen) ? parseInt(f.aktionen, 10) : null;
   return {
-    anzahl: f.anzahl === undefined || f.anzahl === null ? "" : String(f.anzahl),
+    anzahl: valueText(f.anzahl),
     typus: typeof f.typus === "string" ? f.typus : "",
     tags,
     actions: a !== null && a > 0 ? a : null,

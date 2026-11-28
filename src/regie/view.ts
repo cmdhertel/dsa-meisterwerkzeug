@@ -13,6 +13,7 @@ import { buildSecretsPanel, SecretsApi } from "./secretsPanel";
 import { buildStage, StageApi } from "./stage";
 import { RegieState, regieOf } from "./state";
 import { SceneInfo, SceneSet, SessionInfo, campaignName, discoverScenes, fmOf, listSessions, pickDefaultSession } from "./vault";
+import { valueText } from "../valueText";
 
 export const REGIE_VIEW_TYPE = "dsa-regie";
 type Layout = "wide" | "medium" | "narrow";
@@ -275,7 +276,7 @@ export class RegieView extends ItemView implements RegieCtx {
     }, 500);
   }
   private onMeta(file: TFile): void {
-    const typ = String(fmOf(this.app, file.path)?.typ ?? "").toLowerCase();
+    const typ = valueText(fmOf(this.app, file.path)?.typ).toLowerCase();
     if (typ === "session") this.later("sessions", ...(file.path === this.sessionPath ? (["set", "stage", "secrets"] as Flag[]) : []));
     else if (typ === "szene" || typ === "kapitel" || typ === "abenteuer") this.later("set", "secrets", ...(file.path === this.sel ? (["stage"] as Flag[]) : []));
     else if (typ === "nsc" || typ === "ort") this.later("stage");

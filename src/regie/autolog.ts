@@ -25,7 +25,7 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
   // --- combat
   const tracker = new FightTracker();
   let announced = false;
-  let timer: ReturnType<typeof setTimeout> | null = null;
+  let timer: number | null = null;
   const snapshot = () => plugin.combat.entries.map((en) => ({ name: en.name, creature: en.kind === "creature", down: plugin.combat.isDown(en.id) }));
   const logRun = (text: string) => {
     const run = regie.running();
@@ -36,16 +36,16 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
     const wasFight = tracker.inFight;
     const end = tracker.update(snapshot(), plugin.combat.state.round);
     if (end) {
-      if (timer) clearTimeout(timer);
+      if (timer) window.clearTimeout(timer);
       timer = null;
       if (announced) logRun(end);
       announced = false;
       return;
     }
     if (!wasFight && tracker.inFight) {
-      if (timer) clearTimeout(timer);
+      if (timer) window.clearTimeout(timer);
       // short delay: encounter loading adds several creatures in a row
-      timer = setTimeout(() => {
+      timer = window.setTimeout(() => {
         timer = null;
         if (!tracker.inFight) return;
         announced = true;
@@ -54,7 +54,7 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
     }
   };
   plugin.register(plugin.combat.on(onCombat));
-  plugin.register(() => timer && clearTimeout(timer));
+  plugin.register(() => timer && window.clearTimeout(timer));
   // a fight that was already running at startup is not announced again
   tracker.update(snapshot(), plugin.combat.state.round);
   announced = tracker.inFight;
@@ -62,7 +62,7 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
   // --- calendar date changes
   const cal = calendarOf(plugin);
   const logged = new Map<string, string>();
-  let calTimer: ReturnType<typeof setTimeout> | null = null;
+  let calTimer: number | null = null;
   const campaignOfRun = (): string => {
     const run = regie.running();
     return run ? campaignName(plugin.app, run.sessionPath) : "";
@@ -70,8 +70,8 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
   const current = (campaign: string) => formatDate(cal.getDate(campaign || undefined));
   // the calendar file loads asynchronously at startup: that is not a date change
   let armed = false;
-  const armTimer = setTimeout(() => (armed = true), 3000);
-  plugin.register(() => clearTimeout(armTimer));
+  const armTimer = window.setTimeout(() => (armed = true), 3000);
+  plugin.register(() => window.clearTimeout(armTimer));
   const onCal = () => {
     const campaign = campaignOfRun();
     const key = campaign || cal.active;
@@ -89,9 +89,9 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
       logged.set(key, now); // silent baseline update
       return;
     }
-    if (calTimer) clearTimeout(calTimer);
+    if (calTimer) window.clearTimeout(calTimer);
     // coalesce quick successive changes (stepping through days)
-    calTimer = setTimeout(() => {
+    calTimer = window.setTimeout(() => {
       calTimer = null;
       const run = regie.running();
       if (!run) return;
@@ -106,5 +106,5 @@ export function registerAutoLog(plugin: DsaMeisterwerkzeugPlugin, regie: RegieSt
   };
   logged.set(campaignOfRun() || cal.active, current(campaignOfRun()));
   plugin.register(cal.on(onCal));
-  plugin.register(() => calTimer && clearTimeout(calTimer));
+  plugin.register(() => calTimer && window.clearTimeout(calTimer));
 }

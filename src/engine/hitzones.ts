@@ -320,8 +320,10 @@ export function rollZone(p: ZoneParams, generalRs: number, roller: Roller): Zone
   let roll: number | null = null;
   const valid = targetableZones(p.bodyType);
   let manual = false;
-  if (p.forced && valid.includes(p.forced)) (zone = p.forced), (manual = true);
-  else if (p.targeted && valid.includes(p.targeted)) zone = p.targeted;
+  if (p.forced && valid.includes(p.forced)) {
+    zone = p.forced;
+    manual = true;
+  } else if (p.targeted && valid.includes(p.targeted)) zone = p.targeted;
   else {
     roll = roller(20);
     zone = zoneForRoll(p.bodyType, p.size, roll);

@@ -7,6 +7,7 @@ import type { NoteDigest } from "./digest";
 import { renderInline, renderMd, renderPersons, renderPlaces } from "./persons";
 import { ACTION_ICON, actionLabel, meaningfulBody, stripFrontmatterAndH1, unquote } from "./text";
 import { linkedByTyp, loadPerson, loadPlace, toggleTaskInNote } from "./vault";
+import { asyncHandler } from "../util";
 
 export interface StageApi {
   /** full re-render (async, stale results are dropped) */
@@ -195,7 +196,7 @@ export function buildStage(host: HTMLElement, ctx: RegieCtx): StageApi {
       li.toggleClass("is-done", t.checked);
       const span = label.createSpan({ cls: "dsa-regie-task-text" });
       await renderInline(ctx, t.text, span, path, c);
-      cb.addEventListener("change", async () => {
+      cb.addEventListener("change", asyncHandler(async () => {
         const want = cb.checked;
         cb.disabled = true;
         const ok = await toggleTaskInNote(ctx.app, path, t, want);
@@ -208,7 +209,7 @@ export function buildStage(host: HTMLElement, ctx: RegieCtx): StageApi {
         li.toggleClass("is-done", want);
         const session = ctx.session();
         if (want && session && ctx.isRunning()) ctx.regie.log(session, "geheimnis", t.text.replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, "$1"));
-      });
+      }));
     }
   }
 

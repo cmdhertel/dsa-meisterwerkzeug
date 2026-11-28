@@ -1,7 +1,6 @@
 // Obsidian side: rule notes -> SpellDef[], casters from heroes/bestiary, energy write-back, remembered attributes.
 import { Notice } from "obsidian";
 import type { App, TFile } from "obsidian";
-import type { AttrKey } from "../engine/types";
 import { ATTR_KEYS } from "../engine/types";
 import type DsaMeisterwerkzeugPlugin from "../main";
 import { folderPath } from "../settingsData";
@@ -62,7 +61,7 @@ export class SpellRepository {
 
   // ---- casters
   heroCasters(): Caster[] {
-    return this.plugin.heroes.all().map((h) => casterFromHero(h, h.notePath ? (this.app.metadataCache.getCache(h.notePath)?.frontmatter as Record<string, unknown> | undefined) : undefined));
+    return this.plugin.heroes.all().map((h) => casterFromHero(h, h.notePath ? this.app.metadataCache.getCache(h.notePath)?.frontmatter : undefined));
   }
   creatureCaster(path: string): Caster | null {
     const f = this.app.vault.getFileByPath(path);

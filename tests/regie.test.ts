@@ -305,7 +305,7 @@ describe("run reducers", () => {
     expect(r.activeScene).toBe("a");
     expect(r.journal).toHaveLength(1);
     expect(r.journal[0].kind).toBe("notiz");
-    const rt = JSON.parse(JSON.stringify(r));
+    const rt: unknown = JSON.parse(JSON.stringify(r));
     expect(normalizeRun(rt, "S")).toEqual(r);
   });
   it("formatting and tables", () => {

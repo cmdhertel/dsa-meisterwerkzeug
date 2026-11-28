@@ -36,7 +36,7 @@ const noteKey = (kind: EnergyKind) => (kind === "AsP" ? KEY_ASP_CURRENT : KEY_KA
 /** Capture / refresh one combatant from its note. Heroes always follow the note; creatures only fill what is missing. */
 export function syncEntryEnergy(plugin: DsaMeisterwerkzeugPlugin, e: CombatEntry): void {
   if (!e.sourcePath) return;
-  const fm = (e.kind === "hero" ? plugin.app.metadataCache.getCache(e.sourcePath)?.frontmatter : plugin.bestiary.frontmatterByPath(e.sourcePath)) as Fm | undefined;
+  const fm = e.kind === "hero" ? plugin.app.metadataCache.getCache(e.sourcePath)?.frontmatter : plugin.bestiary.frontmatterByPath(e.sourcePath);
   if (!fm) return;
   if (e.kind === "hero") {
     plugin.combat.syncEnergy(e.id, heroEnergyFromFm(fm, plugin.heroes.getByPath(e.sourcePath)?.asp.max));

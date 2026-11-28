@@ -1,6 +1,7 @@
 import { tryParseDice } from "../engine/dice";
 import type { Combatant, Weapon } from "../model";
 import { deriveBody } from "./body";
+import { valueText } from "../valueText";
 
 export type ParseStatus = "ok" | "partial" | "manual" | "nostats";
 
@@ -54,7 +55,7 @@ export function splitFields(desc: string): Record<string, string> {
 }
 
 export function parseWeapon(name: string, descRaw: unknown): Weapon {
-  const raw = typeof descRaw === "string" ? descRaw : String(descRaw ?? "");
+  const raw = valueText(descRaw);
   const f = splitFields(raw);
   const hasFk = "FK" in f;
   const kind: Weapon["kind"] = hasFk ? "ranged" : "melee";

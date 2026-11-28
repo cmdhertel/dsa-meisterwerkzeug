@@ -21,6 +21,7 @@ import { CastResult, Caster, casterFromHero, openCastDialog } from "../magic";
 import { magicRepo } from "../magic/repository";
 import { LastHit, ZONE_LABEL } from "../engine/hitzones";
 import { ROMAN, entryStatePenalty, lastHitText, manualDefenseDelta, weaponValue, zoneOverview } from "./logic";
+import { asyncHandler } from "../util";
 
 export { COCKPIT_VIEW_TYPE };
 const MAX_LOG = 20;
@@ -130,14 +131,14 @@ export class CockpitView extends ItemView {
   }
 
   async onClose() {
-    cancelAnimationFrame(this.raf);
+    window.cancelAnimationFrame(this.raf);
     this.ro?.disconnect();
     this.ro = null;
   }
 
   private scheduleRender() {
-    cancelAnimationFrame(this.raf);
-    this.raf = requestAnimationFrame(() => this.render());
+    window.cancelAnimationFrame(this.raf);
+    this.raf = window.requestAnimationFrame(() => this.render());
   }
 
   // ------------------------------------------------------------ render
@@ -293,10 +294,10 @@ export class CockpitView extends ItemView {
     const total = e.iniRoll === null ? "–" : String(e.iniBase + e.iniRoll);
     const ini = parent.createSpan({ text: short ? total : `INI ${total}`, cls: "dsa-cp-ini" });
     ini.setAttr("aria-label", `INI: Basis ${e.iniBase}${e.iniRoll !== null ? ` + W6 ${e.iniRoll}` : ""} – klicken zum Ändern des Wurfs`);
-    ini.addEventListener("click", async () => {
+    ini.addEventListener("click", asyncHandler(async () => {
       const v = await promptNumber(this.app, `${e.name}: INI-Wurf (1W6)`, "Gewürfelter Wert", e.iniRoll ?? 1, 0);
       if (v !== null) this.plugin.combat.setInitiativeRoll(e.id, v);
-    });
+    }));
     return ini;
   }
 
@@ -316,10 +317,10 @@ export class CockpitView extends ItemView {
     const bar = box.createDiv({ cls: "dsa-cp-enbar" });
     bar.createDiv({ cls: "dsa-cp-enfill" }).setCssProps({ "--dsa-w": `${energyPct(en.max, spent)}%` });
     box.createSpan({ text: `${kind} ${en.cur}/${en.max}`, cls: "dsa-cp-entext" });
-    box.addEventListener("click", async () => {
+    box.addEventListener("click", asyncHandler(async () => {
       const v = await promptEnergy(this.app, `${e.name}: ${kind}`, en.cur, en.max);
       if (v !== null) adjustEnergy(this.plugin, e.id, kind, v);
-    });
+    }));
   }
 
   private renderLepBar(parent: HTMLElement, e: CombatEntry, thin: boolean) {
@@ -336,12 +337,12 @@ export class CockpitView extends ItemView {
     if (!e.needsManual.length) return;
     const w = row.createDiv({ cls: "dsa-cp-warn" });
     w.createSpan({ text: `Werte fehlen (${e.needsManual.join(", ").toUpperCase()}) ` });
-    this.btn(w, "eintragen", async () => {
+    this.btn(w, "eintragen", asyncHandler(async () => {
       const st = await promptStats(this.app, { name: e.name, kind: e.kind, sourcePath: e.sourcePath, lepMax: e.lepMax || null, iniBase: e.needsManual.includes("ini") ? null : e.iniBase, rs: e.rs, vw: e.vw, weapons: [], needsManual: e.needsManual });
       if (!st) return;
       if (e.needsManual.includes("lep")) this.plugin.combat.setLepMax(e.id, st.lepMax);
       if (e.needsManual.includes("ini")) this.plugin.combat.setIniBase(e.id, st.iniBase);
-    });
+    }));
   }
 
   private toggleHidden(e: CombatEntry) {
@@ -415,10 +416,10 @@ export class CockpitView extends ItemView {
       const act = tr.createEl("td", { cls: "dsa-tz-zact" });
       const b = act.createEl("button", { text: "±", cls: "dsa-tz-adj" });
       b.setAttr("aria-label", `SP auf ${r.label} buchen oder Zähler korrigieren`);
-      b.addEventListener("click", async () => {
+      b.addEventListener("click", asyncHandler(async () => {
         const n = await promptNumber(this.app, `${e.name}: ${r.label}`, "SP (positiv = Schaden an der Zone, negativ = Zähler korrigieren)", 0, -999);
         if (n) store.bookZoneDamage(e.id, r.zone, n);
-      });
+      }));
     }
     const foot = det.createDiv({ cls: "dsa-tz-ovfoot" });
     const reset = foot.createEl("button", { text: "Zonen zurücksetzen", cls: "dsa-tz-reset" });
@@ -591,7 +592,7 @@ export class CockpitView extends ItemView {
     let c: Caster | null = null;
     if (e.kind === "hero") {
       const h = this.plugin.heroes.getByPath(e.sourcePath);
-      if (h) c = casterFromHero(h, this.app.metadataCache.getCache(e.sourcePath)?.frontmatter as Record<string, unknown> | undefined);
+      if (h) c = casterFromHero(h, this.app.metadataCache.getCache(e.sourcePath)?.frontmatter);
     } else c = magicRepo(this.plugin).creatureCaster(e.sourcePath);
     if (c && e.kind !== "hero") {
       if (c.asp !== null) c.asp = Math.max(0, c.asp - (e.aspSpent ?? 0));

@@ -4,6 +4,7 @@ import type { RegieCtx } from "./ctx";
 import { renderInline } from "./persons";
 import type { TaskItem } from "./types";
 import { NoteTasks, SceneSet, discoverScenes, loadNoteTasks, toggleTaskInNote } from "./vault";
+import { asyncHandler } from "../util";
 
 export interface SecretsApi {
   render(): Promise<void>;
@@ -59,7 +60,7 @@ export function buildSecretsPanel(host: HTMLElement, ctx: RegieCtx): SecretsApi 
     void renderInline(ctx, t.text, span, n.path, c);
     const src = li.createEl("button", { cls: "dsa-regie-link", text: n.name, attr: { type: "button", title: "Notiz öffnen" } });
     src.addEventListener("click", () => ctx.openNote(n.path));
-    cb.addEventListener("change", async () => {
+    cb.addEventListener("change", asyncHandler(async () => {
       const want = cb.checked;
       cb.disabled = true;
       const ok = await toggleTaskInNote(ctx.app, n.path, t, want);
@@ -71,7 +72,7 @@ export function buildSecretsPanel(host: HTMLElement, ctx: RegieCtx): SecretsApi 
       const s = ctx.session();
       if (want && s && ctx.isRunning()) ctx.regie.log(s, "geheimnis", t.text.replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, "$1"));
       again();
-    });
+    }));
   };
 
   const render = async (): Promise<void> => {

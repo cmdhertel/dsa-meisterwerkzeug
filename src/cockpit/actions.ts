@@ -12,7 +12,7 @@ export function heroCombatant(plugin: DsaMeisterwerkzeugPlugin, hero: Hero): Com
   const c = heroToCombatant(hero);
   if (hero.notePath) {
     const f = plugin.app.vault.getFileByPath(hero.notePath);
-    const raw = f ? plugin.app.metadataCache.getFileCache(f)?.frontmatter?.["LeP_aktuell"] : undefined;
+    const raw: unknown = f ? plugin.app.metadataCache.getFileCache(f)?.frontmatter?.["LeP_aktuell"] : undefined;
     const n = typeof raw === "number" ? raw : typeof raw === "string" && /^\s*-?\d+\s*$/.test(raw) ? Number(raw) : null;
     if (n !== null && Number.isFinite(n)) c.lepCurrent = n;
   }
@@ -49,7 +49,7 @@ export async function addEnemyFlow(plugin: DsaMeisterwerkzeugPlugin): Promise<vo
 export const campaignOf = (plugin: DsaMeisterwerkzeugPlugin, notePath?: string): string => {
   if (!notePath) return "";
   const f = plugin.app.vault.getFileByPath(notePath);
-  const raw = f ? plugin.app.metadataCache.getFileCache(f)?.frontmatter?.kampagne : null;
+  const raw: unknown = f ? plugin.app.metadataCache.getFileCache(f)?.frontmatter?.kampagne : null;
   const s = Array.isArray(raw) ? String(raw[0] ?? "") : typeof raw === "string" ? raw : "";
   return s.replace(/^\[\[|\]\]$/g, "").split("|")[0].trim();
 };

@@ -1,5 +1,5 @@
 // Sitzungsregie: pure markdown digest of a session/scene/NPC note (no obsidian imports).
-import type { ActionKind, BlockRef, Fact, InlineAction, Kurzprofil, NoteDigest, ReadAloud, Section, TaskItem } from "./types";
+import type { ActionKind, Fact, Kurzprofil, NoteDigest, TaskItem } from "./types";
 
 export type { TaskItem, BlockRef, InlineAction, ReadAloud, Fact, Section, NoteDigest, Kurzprofil } from "./types";
 

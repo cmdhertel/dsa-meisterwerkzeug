@@ -52,7 +52,7 @@ export class HeroRepository {
         const listing = await this.app.vault.adapter.list(folder);
         for (const path of listing.files.filter((f) => f.endsWith(".dsahero.json"))) {
           try {
-            const json = JSON.parse((await this.app.vault.adapter.read(path)) as string) as HeroJson;
+            const json = JSON.parse(await this.app.vault.adapter.read(path)) as HeroJson;
             const problem = validateHeroJson(json);
             if (problem) {
               this.errors.push({ path, message: problem });

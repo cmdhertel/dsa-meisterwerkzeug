@@ -155,7 +155,7 @@ export function defenseOptions(defender: CombatEntry, kind: AttackKind): { optio
   let def: DefenseOption | undefined;
   if (kind === "nahkampf") def = firstPa ?? vw;
   else def = vw ?? firstPa;
-  return { options, defaultId: (def ?? options.find((o) => o.id === "none") as DefenseOption).id };
+  return { options, defaultId: def?.id ?? "none" };
 }
 
 export function entryLevels(e: CombatEntry) {

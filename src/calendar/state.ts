@@ -34,7 +34,7 @@ export function normalizeData(raw: unknown): CalendarData {
       out.campaigns[k] = c;
     }
   }
-  if (r.weather && typeof r.weather === "object") out.weather = r.weather as CalendarData["weather"];
+  if (r.weather && typeof r.weather === "object") out.weather = r.weather;
   return out;
 }
 
@@ -60,7 +60,7 @@ export class CalendarState {
   /** in-memory data differs from the stored file */
   private dirty = false;
   private listeners = new Set<() => void>();
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  private timer: number | null = null;
 
   constructor(private app: App, private path: string, private opts: CalendarStateOptions = {}) {}
 
@@ -98,12 +98,12 @@ export class CalendarState {
   private changed(): void {
     this.dirty = true;
     this.listeners.forEach((f) => f());
-    if (this.timer) clearTimeout(this.timer);
-    this.timer = setTimeout(() => void this.flush(), 300);
+    if (this.timer) window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => void this.flush(), 300);
   }
 
   async flush(): Promise<void> {
-    if (this.timer) clearTimeout(this.timer);
+    if (this.timer) window.clearTimeout(this.timer);
     this.timer = null;
     if (this.loadFailed || !this.dirty) return;
     this.dirty = false;

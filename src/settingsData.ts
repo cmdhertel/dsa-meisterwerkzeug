@@ -65,7 +65,7 @@ const LEGACY_VALUES: Partial<DsaSettings> = {
 /** Merge saved settings over the defaults; saved settings from an older version get the legacy values for missing keys. */
 export function resolveSettings(saved: Partial<DsaSettings> | undefined): DsaSettings {
   const base = saved ? { ...DEFAULT_SETTINGS, ...LEGACY_VALUES } : DEFAULT_SETTINGS;
-  return { ...base, ...(saved ?? {}) } as DsaSettings;
+  return { ...base, ...saved };
 }
 
 /** Folder path without trailing slashes. */

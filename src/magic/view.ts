@@ -5,7 +5,7 @@ import { parseMagic } from "./parse";
 
 export function mountMagic(plugin: DsaMeisterwerkzeugPlugin, raw: string): HTMLElement {
   const parsed = parseMagic(raw);
-  const el = document.createElement("span");
+  const el = createSpan();
   el.addClass("dsa-probe", "dsa-magic");
   if (!parsed.ok) {
     el.addClass("dsa-probe-error");

@@ -4,7 +4,7 @@
 export type Roller = (sides: number) => number;
 
 export const defaultRoller: Roller = (sides) => {
-  const c = (globalThis as { crypto?: Crypto }).crypto;
+  const c = window.crypto as Crypto | undefined;
   if (c?.getRandomValues) {
     // rejection sampling to avoid modulo bias
     const buf = new Uint32Array(1);

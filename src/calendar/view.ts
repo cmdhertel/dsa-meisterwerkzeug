@@ -79,7 +79,7 @@ export class CalendarView extends ItemView {
   private scanEvents() {
     const all: CalEvent[] = [];
     for (const f of this.app.vault.getMarkdownFiles()) {
-      const fm = this.app.metadataCache.getFileCache(f)?.frontmatter as Record<string, unknown> | undefined;
+      const fm = this.app.metadataCache.getFileCache(f)?.frontmatter;
       if (!fm) continue;
       const e = eventFromFrontmatter(f.path, f.basename, fm);
       if (e) all.push(e);
@@ -153,8 +153,13 @@ export class CalendarView extends ItemView {
     const step = (n: number) => {
       let m = s.month + n;
       let y = s.year;
-      if (m > NAMENLOSE) (m = 0), y++;
-      else if (m < 0) (m = NAMENLOSE), y--;
+      if (m > NAMENLOSE) {
+        m = 0;
+        y++;
+      } else if (m < 0) {
+        m = NAMENLOSE;
+        y--;
+      }
       this.shown = { year: y, month: m };
       this.selectedDay = null;
       this.render();

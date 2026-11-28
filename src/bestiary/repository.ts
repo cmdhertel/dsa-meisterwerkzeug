@@ -85,7 +85,7 @@ export class BestiaryRepository {
 
   private isNpcCandidate(file: TFile): boolean {
     if (this.inBestiary(file.path) || isInFolder(file.path, this.templateFolder)) return false;
-    const typ = this.app.metadataCache.getFileCache(file)?.frontmatter?.typ;
+    const typ: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter?.typ;
     return typeof typ === "string" && NPC_TYPES.has(typ.trim().toLowerCase());
   }
 
@@ -144,7 +144,7 @@ export class BestiaryRepository {
    * with tags from the frontmatter and typus "NSC" (so the builder offers it as a filter).
    */
   frontmatter(file: TFile): Record<string, unknown> | undefined {
-    const fm = this.app.metadataCache.getFileCache(file)?.frontmatter as Record<string, unknown> | undefined;
+    const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
     const sb = this.npcs.get(file.path);
     if (!sb) return fm;
     return { ...sb, typus: typeof sb.typus === "string" ? sb.typus : "NSC", tags: fm?.tags ?? sb.tags };

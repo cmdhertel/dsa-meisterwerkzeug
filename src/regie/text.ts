@@ -71,7 +71,7 @@ export function imageTarget(v: unknown): string | null {
 }
 
 export const initials = (name: string): string => {
-  const parts = name.replace(/\(.*?\)/g, "").split(/[\s,\-]+/).filter((p) => /^\p{L}/u.test(p));
+  const parts = name.replace(/\(.*?\)/g, "").split(/[\s,-]+/).filter((p) => /^\p{L}/u.test(p));
   const pick = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : parts.slice(0, 1);
   return pick.map((p) => p[0].toUpperCase()).join("") || "?";
 };

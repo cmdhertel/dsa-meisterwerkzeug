@@ -1,6 +1,7 @@
 // Pure: turn note frontmatter into calendar events.
 import { linkTarget } from "../probe/logic";
 import { AvDate, parseDate, toDayNumber } from "./engine";
+import { valueText } from "../valueText";
 
 export interface CalEvent {
   path: string;
@@ -26,7 +27,7 @@ export function eventFromFrontmatter(path: string, title: string, fm: Record<str
   for (const k of DATE_KEYS) {
     const raw = fm[k];
     if (raw === undefined || raw === null) continue;
-    const date = parseDate(typeof raw === "number" ? "" : String(raw));
+    const date = parseDate(typeof raw === "number" ? "" : valueText(raw));
     if (date) return { path, title, typ, campaign: linkTarget(fm.kampagne), date, day: toDayNumber(date) };
   }
   return null;

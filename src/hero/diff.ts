@@ -2,6 +2,7 @@
 import { TALENTS } from "../data/talents.generated";
 import { ATTR_KEYS } from "../engine/types";
 import { Hero, weaponValues } from "./model";
+import { valueText } from "../valueText";
 
 export interface HeroFlat {
   /** simple values: attributes, derived values */
@@ -86,7 +87,7 @@ export function diffFrontmatter(existing: Record<string, unknown> | null, next: 
     const old = existing?.[k];
     const empty = old === undefined || old === null || old === "";
     if (empty) out.push(`Frontmatter ${k}: (leer) → ${v}`);
-    else if (String(old) !== String(v)) out.push(`Frontmatter ${k}: ${String(old)} → ${v}`);
+    else if (valueText(old) !== valueText(v)) out.push(`Frontmatter ${k}: ${valueText(old)} → ${v}`);
   }
   return out;
 }

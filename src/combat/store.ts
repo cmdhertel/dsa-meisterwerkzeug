@@ -4,7 +4,6 @@ import { Roller, defaultRoller } from "../engine/dice";
 import { rollInitiative, sortInitiative } from "../engine/initiative";
 import { BodyType, LastHit, SizeCat, ZONE_LABEL, ZoneDamage, ZoneKey, ZoneRsMap, ZoneTally } from "../engine/hitzones";
 import { CombatPatch, applyPatch } from "../engine/patch";
-import type { StatusId } from "../engine/effectConstants";
 import {
   Effect, NewEffect, advanceDurations, defenseBlockFor, describeExpiry, describeTick, durationText, effectLabel, effectsOf,
   incapacitatingStatus, makeEffect, normalizeEffects, rollTicks, tickPatch, timedStateLevels,
@@ -167,7 +166,7 @@ const newId = () => `c${Date.now().toString(36)}${(idCounter++).toString(36)}`;
 export class CombatStore {
   private s: CombatState = emptyCombatState();
   private listeners = new Set<CombatListener>();
-  private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  private saveTimer: number | null = null;
 
   /** @param persist called (debounced) with the full state; the plugin writes it with saveData */
   constructor(private persist: (state: CombatState) => void | Promise<void> = () => {}) {}
@@ -205,15 +204,15 @@ export class CombatStore {
     return { ...this.s, history: [] };
   }
   private scheduleSave() {
-    if (this.saveTimer) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
+    if (this.saveTimer) window.clearTimeout(this.saveTimer);
+    this.saveTimer = window.setTimeout(() => {
       this.saveTimer = null;
       void this.persist(this.persistable());
     }, 300);
   }
   /** Persist immediately (call on plugin unload). */
   async flush(): Promise<void> {
-    if (this.saveTimer) clearTimeout(this.saveTimer);
+    if (this.saveTimer) window.clearTimeout(this.saveTimer);
     this.saveTimer = null;
     await this.persist(this.persistable());
   }
@@ -246,7 +245,7 @@ export class CombatStore {
   private mutate(label: string, type: CombatEventType, ids: string[], fn: () => unknown): void {
     const snap = this.snapshot();
     const out = fn();
-    const messages = Array.isArray(out) && out.every((x) => typeof x === "string") && out.length ? (out as string[]) : undefined;
+    const messages = Array.isArray(out) && out.every((x) => typeof x === "string") && out.length ? out : undefined;
     this.s.history.push({ label, snapshot: snap });
     if (this.s.history.length > MAX_HISTORY) this.s.history.splice(0, this.s.history.length - MAX_HISTORY);
     this.emit({ type, ids, label, messages });
@@ -314,10 +313,22 @@ export class CombatStore {
     const e = this.get(id);
     if (!e) return false;
     let changed = false;
-    if (e.bodyType === undefined && c.bodyType) (e.bodyType = c.bodyType), (changed = true);
-    if (e.size === undefined && c.size) (e.size = c.size), (changed = true);
-    if (e.ko === undefined && c.ko !== undefined) (e.ko = c.ko), (changed = true);
-    if (e.zoneRs === undefined && c.zoneRs) (e.zoneRs = c.zoneRs), (changed = true);
+    if (e.bodyType === undefined && c.bodyType) {
+      e.bodyType = c.bodyType;
+      changed = true;
+    }
+    if (e.size === undefined && c.size) {
+      e.size = c.size;
+      changed = true;
+    }
+    if (e.ko === undefined && c.ko !== undefined) {
+      e.ko = c.ko;
+      changed = true;
+    }
+    if (e.zoneRs === undefined && c.zoneRs) {
+      e.zoneRs = c.zoneRs;
+      changed = true;
+    }
     if (changed) this.scheduleSave();
     return changed;
   }

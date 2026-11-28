@@ -199,7 +199,7 @@ describe("aventurisch renderer", () => {
   });
 
   it("hidden combatants and secret effects do not leak", () => {
-    const { s, ork, wolf } = fight();
+    const { s, ork } = fight();
     s.patchEntry(ork.id, "verborgen", { hidden: true });
     const out = html(at(s.state, 1));
     expect(out).not.toContain("Ork");

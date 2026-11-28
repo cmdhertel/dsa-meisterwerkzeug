@@ -1,5 +1,5 @@
 // Pure caster model: heroes (frontmatter + imported spells) and bestiary creatures (zauber:/liturgien: strings).
-import type { Attributes, AttrKey } from "../engine/types";
+import type { Attributes } from "../engine/types";
 import { ATTR_KEYS } from "../engine/types";
 import type { Hero } from "../hero/model";
 import type { SpellKind } from "./spells";
@@ -95,13 +95,13 @@ export function casterFromCreature(fm: Record<string, unknown> | undefined, path
   const attrs: Partial<Attributes> = {};
   for (const k of ATTR_KEYS) {
     const v = toNum(f[k.toLowerCase()]);
-    if (v !== null) attrs[k as AttrKey] = v;
+    if (v !== null) attrs[k] = v;
   }
   const asp = toNum(f["asp"]);
   const kap = toNum(f["kap"]);
   return {
     id: `creature:${path}`,
-    label: typeof f["name"] === "string" && f["name"] ? (f["name"] as string) : fallbackName,
+    label: typeof f["name"] === "string" && f["name"] ? f["name"] : fallbackName,
     kind: "creature",
     attrs,
     sk: toNum(f["sk"]) ?? 0,

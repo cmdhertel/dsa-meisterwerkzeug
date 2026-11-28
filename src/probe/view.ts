@@ -3,7 +3,7 @@ import { App, Component, MarkdownRenderer, Menu, Modal, Notice, Setting } from "
 import type DsaMeisterwerkzeugPlugin from "../main";
 import type { Hero } from "../hero/model";
 import { ParseResult, ProbeSpec, formatModifier, parseProbe, unlockedOutcomes } from "./parse";
-import { HeroChoice, ProbeRun, Subject, bestRun, campaignsOf, findCombatEntry, orderHeroes, probeAllEventText, probeEventText, runCheck, subjectFromHero } from "./logic";
+import { HeroChoice, ProbeRun, bestRun, campaignsOf, findCombatEntry, orderHeroes, probeAllEventText, probeEventText, runCheck, subjectFromHero } from "./logic";
 
 export type Selection = { kind: "hero"; uid: string } | { kind: "all" } | { kind: "manual"; attrs: [number, number, number]; fw: number };
 
@@ -252,7 +252,7 @@ export class ProbeView {
 /** Mount a probe button for inline code `raw`. Returns the replacement element. */
 export function mountProbe(plugin: DsaMeisterwerkzeugPlugin, raw: string, sourcePath: string, owner: Component): { el: HTMLElement; view: ProbeView | null } {
   const parsed: ParseResult = parseProbe(raw);
-  const el = document.createElement("span");
+  const el = createSpan();
   if (!parsed.ok) {
     el.addClass("dsa-probe", "dsa-probe-error");
     el.setText(`⚠ ${parsed.error}`);

@@ -18,7 +18,7 @@ export function internalDraggable(app: App): InternalDraggable | undefined {
   const dm = (app as unknown as { dragManager?: unknown }).dragManager;
   if (!dm || typeof dm !== "object") return undefined;
   const d = (dm as { draggable?: unknown }).draggable;
-  return d && typeof d === "object" ? (d as InternalDraggable) : undefined;
+  return d && typeof d === "object" ? d : undefined;
 }
 
 /**

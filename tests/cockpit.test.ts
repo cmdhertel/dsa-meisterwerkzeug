@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fixedRoller, resolveAttack } from "../src/engine";
-import { CombatStore } from "../src/combat/store";
+import { CombatStore, type CombatEntry } from "../src/combat/store";
 import type { Combatant } from "../src/model";
 import {
   buildAttackParams, defenseOptions, describeCheck, describeDamage, manualDefenseDelta, matchCreatureName, needsStatsPrompt,
@@ -58,8 +58,8 @@ describe("attack setup", () => {
     const d = s.addCombatant(creature({ name: "Verteidiger" }));
     return { s, a, d };
   };
-  const input = (a: any, d: any) => ({
-    kind: "nahkampf" as const, attacker: a, defender: d, value: 12, tp: "1W6+4", atMod: 0, tpMod: 0, rangedMod: 0,
+  const input = (a: CombatEntry | undefined, d: CombatEntry | undefined) => ({
+    kind: "nahkampf" as const, attacker: a as CombatEntry, defender: d as CombatEntry, value: 12, tp: "1W6+4", atMod: 0, tpMod: 0, rangedMod: 0,
     defense: { kind: "PA" as const, value: 8 }, defenseMod: 0,
   });
 

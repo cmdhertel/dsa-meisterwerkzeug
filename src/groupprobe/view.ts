@@ -380,7 +380,7 @@ export class GroupProbeModal extends Modal {
 /** Mount a button for inline code `raw`. Returns the replacement element. */
 export function mountGroupProbe(plugin: DsaMeisterwerkzeugPlugin, raw: string, sourcePath: string, line?: number): HTMLElement {
   const parsed = parseGroupProbe(raw);
-  const el = document.createElement("span");
+  const el = createSpan();
   if (!parsed.ok) {
     el.addClass("dsa-gp", "dsa-gp-error");
     el.setText(`⚠ ${parsed.error}`);

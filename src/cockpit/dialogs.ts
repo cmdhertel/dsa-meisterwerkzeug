@@ -2,6 +2,7 @@
 import { App, Modal, Setting, SuggestModal } from "obsidian";
 import type { Combatant } from "../model";
 import { appendVaultDocLink } from "../docLink";
+import { markDestructive } from "../util";
 
 function formModal<T>(app: App, title: string, build: (el: HTMLElement, submit: (v: T) => void) => void): Promise<T | null> {
   return new Promise((resolve) => {
@@ -38,7 +39,7 @@ export function promptNumber(app: App, title: string, label: string, initial: nu
       t.setValue(v).onChange((x) => (v = x));
       t.inputEl.type = "number";
       t.inputEl.addEventListener("keydown", (e) => e.key === "Enter" && go());
-      setTimeout(() => t.inputEl.select(), 0);
+      window.setTimeout(() => t.inputEl.select(), 0);
     });
     new Setting(el).addButton((b) => b.setButtonText("OK").setCta().onClick(go));
   });
@@ -65,7 +66,7 @@ export function promptEnergy(app: App, title: string, current: number, max: numb
       t.inputEl.min = "0";
       t.inputEl.max = String(max);
       t.inputEl.addEventListener("keydown", (e) => e.key === "Enter" && submit(value));
-      setTimeout(() => t.inputEl.select(), 0);
+      window.setTimeout(() => t.inputEl.select(), 0);
     });
     for (const d of [-5, -1, 1, 5]) {
       const b = steps.createEl("button", { text: d > 0 ? `+${d}` : `−${Math.abs(d)}` });
@@ -92,10 +93,10 @@ export function promptLepDelta(app: App, title: string): Promise<number | null> 
       t.inputEl.addEventListener("keydown", (e) => {
         if (e.key === "Enter") go(e.shiftKey ? 1 : -1);
       });
-      setTimeout(() => t.inputEl.focus(), 0);
+      window.setTimeout(() => t.inputEl.focus(), 0);
     });
     new Setting(el)
-      .addButton((b) => b.setButtonText("Schaden").setWarning().onClick(() => go(-1)))
+      .addButton((b) => markDestructive(b.setButtonText("Schaden")).onClick(() => go(-1)))
       .addButton((b) => b.setButtonText("Heilung").setCta().onClick(() => go(1)));
   });
 }
@@ -110,7 +111,7 @@ export function promptStats(app: App, c: Combatant): Promise<{ lepMax: number; i
     new Setting(el).setName("LeP (max)").addText((t) => {
       t.setValue(lep).onChange((x) => (lep = x));
       t.inputEl.type = "number";
-      setTimeout(() => t.inputEl.focus(), 0);
+      window.setTimeout(() => t.inputEl.focus(), 0);
     });
     new Setting(el).setName("INI-Basis").addText((t) => {
       t.setValue(ini).onChange((x) => (ini = x));
@@ -148,7 +149,7 @@ export function promptManualHero(app: App): Promise<ManualHeroInput | null> {
     const err = el.createEl("p", { cls: "dsa-cp-error" });
     new Setting(el).setName("Name").addText((t) => {
       t.onChange((x) => (name = x));
-      setTimeout(() => t.inputEl.focus(), 0);
+      window.setTimeout(() => t.inputEl.focus(), 0);
     });
     const numField = (label: string, set: (v: string) => void, init = "") =>
       new Setting(el).setName(label).addText((t) => {
@@ -238,7 +239,7 @@ export function suggestCreature(app: App, search: (q: string) => Combatant[]): P
         resolve(c);
       }
       onClose() {
-        setTimeout(() => {
+        window.setTimeout(() => {
           if (!done) resolve(null);
         }, 0);
       }
