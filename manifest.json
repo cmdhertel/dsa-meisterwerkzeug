@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "minAppVersion": "1.7.2",
   "description": "Run Das Schwarze Auge 5 (DSA5) sessions as game master: rules engine, combat cockpit, probes, spells, Aventurian calendar, session director and hero import. German UI.",
-  "author": "Vademecum des Meisters",
+  "author": "Gian Luca Hertel",
   "isDesktopOnly": false,
   "authorUrl": "https://github.com/cmdhertel"
 }
