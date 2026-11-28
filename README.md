@@ -47,12 +47,22 @@ Das Plugin braucht keine bestimmte Vault-Struktur. Unter *Einstellungen → DSA 
 
 **Welche Felder und Formate das Plugin liest, steht mit Beispielen in [docs/VAULT.md](docs/VAULT.md).**
 
+Voraussetzung: Obsidian 1.7.2 oder neuer (Desktop und Mobil).
+
+## Datenzugriff und Datenschutz
+
+Das Plugin arbeitet vollständig lokal. Es baut keine Netzwerkverbindungen auf, sammelt keine Telemetrie und braucht kein Konto.
+
+- **Vault-Dateien:** Um Kampagnen, Sessions, Szenen, NSCs und Kreaturen zu finden, durchsucht das Plugin die Markdown-Dateien deines Vaults nach dem Frontmatter-Feld `typ` (über den Metadaten-Cache von Obsidian) sowie die eingestellten Ordner nach Kreaturen-, Zauber- und Liturgie-Notizen und `.dsahero.json`-Dateien. Geschrieben wird nur, wenn du eine seiner Funktionen nutzt (z. B. Heldenimport, Mitschrift einer laufenden Session, Kalenderdatum der Kampagne, Kampf-Codeblöcke), sowie in seine eigene `data.json`.
+- **Zwischenablage:** Nur schreibend und nur auf Knopfdruck (z. B. „Kopieren“ in der Sitzungsregie). Das Plugin liest die Zwischenablage nie aus.
+
 ## Entwicklung
 
 ```bash
 npm ci
 npm test          # Vitest
 npm run typecheck
+npm run lint      # ESLint mit eslint-plugin-obsidianmd (Regeln des Plugin-Reviews)
 npm run build     # erzeugt main.js im Repo-Root
 ```
 

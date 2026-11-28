@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.2 (2026-11-28)
+
+Anpassungen an das Review des Obsidian-Plugin-Verzeichnisses:
+
+- Mindestversion von Obsidian auf 1.7.2 angehoben (`revealLeaf` gibt erst ab dieser Version ein Promise zurück).
+- Einstellungen: Unter Obsidian 1.13+ werden sie über die neue Einstellungs-API definiert und sind damit in der Einstellungssuche auffindbar. Ältere Versionen zeigen dieselbe Seite wie bisher.
+- „Gefährliche“ Schaltflächen (Schaden, Entfernen, Ersetzen) nutzen ab Obsidian 1.13 den neuen Destructive-Stil.
+- Timer und DOM-Aufrufe sind auch in ausgelagerten Fenstern sicher; Fehler in Klick-Handlern werden protokolliert statt verschluckt.
+- Spielerbildschirm: Das Lebenszustands-Band hat statt der eingekerbten Enden abgerundete Ecken, die Durchstreichung gefallener Kämpfer nutzt die Standardstärke (bessere CSS-Kompatibilität).
+- README: Abschnitt „Datenzugriff und Datenschutz“ (Vault-Durchsuchung, Zwischenablage nur schreibend).
+- Releases tragen jetzt GitHub-Attestierungen (Build-Provenienz) für `main.js`, `manifest.json` und `styles.css`.
+- Entwicklung: ESLint mit `eslint-plugin-obsidianmd` (`npm run lint`, auch in CI); TypeScript 6; `builtin-modules` entfernt; `npm version` übernimmt auch `package-lock.json`.
+
 ## 1.0.1 (2026-11-27)
 
 - Plugin-Beschreibung an die Vorgaben des Obsidian-Plugin-Verzeichnisses angepasst (Aktionssatz, Punkt am Ende).
