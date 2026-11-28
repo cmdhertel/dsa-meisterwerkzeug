@@ -250,7 +250,7 @@
   animation: dsa-psa-ember 2.8s ease-in-out infinite;
 }
 .dsa-psa-banner.is-down { opacity: 0.6; filter: grayscale(0.85); }
-.dsa-psa-banner.is-down .dsa-psa-name { text-decoration: line-through; text-decoration-thickness: 0.09em; }
+.dsa-psa-banner.is-down .dsa-psa-name { text-decoration: line-through; }
 .dsa-psa-banner.is-hidden .dsa-psa-name { letter-spacing: 0.4em; }
 .dsa-psa-seal { position: absolute; left: -0.45em; top: 50%; width: 2.7em; height: 2.7em; transform: translateY(-50%); filter: drop-shadow(0 0 0.35em rgba(255, 120, 30, 0.9)); animation: dsa-psa-glow 2.8s ease-in-out infinite; }
 .dsa-seal-wax { fill: var(--psa-red); stroke: var(--psa-red-deep); stroke-width: 1; }
@@ -270,7 +270,7 @@
 .dsa-psa-tag-now { background: var(--psa-red); border-color: var(--psa-red-deep); color: #f6e7bd; font-weight: 700; }
 .dsa-psa-ribbon {
   display: inline-block; margin-top: 0.3em; padding: 0.05em 1.4em; font-family: var(--psa-display); font-size: 1.05em; letter-spacing: 0.05em;
-  color: #f6e7bd; background: var(--psa-ok); clip-path: polygon(0 0, 100% 0, calc(100% - 0.7em) 50%, 100% 100%, 0 100%, 0.7em 50%);
+  color: #f6e7bd; background: var(--psa-ok); border-radius: 0.25em;
 }
 .dsa-psa-word-angeschlagen { background: #7d8a2b; }
 .dsa-psa-word-verletzt { background: var(--psa-warn); }
